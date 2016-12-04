@@ -1,0 +1,210 @@
+
+== HTTP authentication library for Nim
+
+image:https://circleci.com/gh/FedericoCeratto/nim-httpauth.svg?style=svg["CircleCI", link="https://circleci.com/gh/FedericoCeratto/nim-httpauth"]
+
+.Features:
+[none]
+- [x] Encrypted+signed session cookies
+- [x] Sync SQLite backend
+- [x] Sync MySQL backend
+- [x] Sync PostgreSQL backend
+- [x] Sync Etcd backend
+- [x] Sync Redis backend
+- [x] Sync MongoDB backend
+- [x] Send user registration emails
+- [x] Send password recovery emails
+- [ ] FIDO U2F 2nd factor authentication
+- [ ] Async JSON backend
+- [ ] Async backends (when async libraries will be available)
+
+.Not planned:
+- bcrypt (obsolete)
+- pbkdf2 (obsolete)
+
+Install the dependencies:
+[source,bash]
+----
+sudo apt-get install libsodium18
+----
+
+=== Install
+
+[source,bash]
+----
+nimble install httpauth
+
+# Install extra dependencies as needed:
+
+nimble install etcd_client   # etcd
+nimble install redis         # Redis
+nimble install nimongo       # MongoDB
+----
+
+=== Usage
+
+Choose one of the ready-to-use backends or implement your own.
+You can use the existing backends as an example; Implement the HTTPAuthBackend methods from base.nim.
+
+There is an SMTP client called Mailer send registration / password reset emails.
+You can also use httpauth without email support or implement your own Mailer to use
+other protocols (e.g. SMS messages)
+
+Roles have an unique name and a numeric level. Users are associated to one role.
+Users can be authorized to access pages based on their user account, role level or role name:
+
+auth.require()::
+allow only logged-in users
+auth.require(username="TomBombadil")::
+Allow only a logged-in user, by name
+auth.require(role="admin", fixed_role=true)::
+Allow all users with "admin" role, strictly
+auth.require(role="editor")::
+Allow all users with role level equal or higher than "editor". E.g. if "editor" has level 50 and "admin" has level 100 both groups will be allowed.
+
+Registration can be done in two steps: register() will send a challenge email and validate_registration() will create the user account. Otherwise, you can just call create_user() straight away.
+
+If an email address is set, send_password_reset_email() and reset_password() can be used to reset account passwords.
+
+Cookie-based session management procs can be used alone (without HTTPAuth object).
+
+
+==== Ready-to-use backends
+
+The provided backends for MySQL, PostgreSQL, SQLite, etcd, Redis create their own table structure and initalize it.
+
+They are optimized for login speed and minimizing DB traffic.
+
+==== Security
+
+Cookie-based sessions are encrypted and signed to prevent tampering.
+Registration and password reset tokens are signed and have a timeout.
+Passwords are stored using Scrypt or Argon2.
+
+WARNING: Remember to filter user input to prevent XSS, SQL injections and similar attacks.
+
+WARNING: Scrypt and Argon2 will not be robust enough forever. You'll have to update the library and rehash passwords.
+
+==== Usage example:
+[source,nim]
+----
+import asyncdispatch,
+  httpauth,
+  jester
+
+# Create a backend as needed and an HTTPAuth instance
+let backend = newSQLBackend("mysql://root@localhost/httpauth_test")
+var auth = newHTTPAuth("localhost", backend)
+
+# Create admin user - you need to run this only once
+auth.initialize_admin_user(password="hunter123")
+
+routes:
+  post "/login":
+    ## Perform login
+    auth.headers_hook(request.headers)
+    try:
+      auth.login(@"username", @"password")
+      resp "Success"
+    except LoginError:
+      resp "Failed"
+
+  get "/logout":
+    ## Logout
+    try:
+      auth.logout()
+      resp "Success"
+    except AuthError:
+      resp "Failed"
+
+  get "/is_user_anonymous":
+    resp if auth.is_user_anonymous(): "True" else: "False"
+
+  post "/register":
+    ## Send registration email
+    auth.register(@"username", @"password", @"email_address")
+    resp "Please check your mailbox"
+
+  post "/validate_registration/@registration_code":
+    ## Validate registration, create user account
+    auth.validate_registration(@"registration_code")
+    resp """Thanks. <a href="/login">Go to login</a>"""
+
+  post "/reset_password":
+    ## Send out password reset email
+    auth.send_password_reset_email(username = @"username", email_addr = @"email_address")
+    resp "Please check your mailbox."
+
+  post "/change_password":
+    ## Change password
+    auth.reset_password(@("reset_code"), @("password"))
+    resp """Thanks. <a href="/login">Go to login</a>"""
+
+  get "/private":
+    ## Only authenticated users can see this
+    try:
+      auth.require()
+    except AuthError:
+      resp "Sorry, you are not authorized."
+    resp """Welcome! <a href="/admin">Admin page</a> <a href="/logout">Logout</a>"""
+
+  #get "/restricted_download":
+  #  ## Only authenticated users can download this file from ./public
+  #  auth.require()
+  #  resp bottle.static_file("static_file", root=".")
+
+  get "/my_role":
+    ## Show current user role
+    auth.require()
+    resp auth.current_user.role
+
+
+  # Serve admin-only pages
+
+  get "/admin":
+    ## Only admin users can see this
+    auth.require(role="admin")
+    # resp dict( current_user=auth.current_user, users=auth.list_users(), roles=auth.list_roles())
+
+  post "/create_user":
+    try:
+      auth.require(role="admin")
+      auth.create_user(@"username", @"role", @"password")
+      resp $( %* {"ok": true, "msg": ""})
+    except AuthError:
+      let r = %* {"msg": getCurrentExceptionMsg(), "ok": true}
+      resp $r
+
+  post "/delete_user":
+    try:
+      auth.require(role="admin")
+      auth.delete_user(@("username"))
+      resp $( %* {"ok": true, "msg": ""})
+    except AuthError:
+      let r = %* {"msg": getCurrentExceptionMsg(), "ok": true}
+      resp $r
+
+  post "/create_role":
+    let level = @"level".parseInt
+    try:
+      auth.require(role="admin")
+      auth.create_role(@("role"), level)
+      resp $( %* {"ok": true, "msg": ""})
+    except AuthError:
+      let r = %* {"msg": getCurrentExceptionMsg(), "ok": true}
+      resp $r
+
+  post "/delete_role":
+    try:
+      auth.require(role="admin")
+      auth.delete_role(@("role"))
+      resp $( %* {"ok": true, "msg": ""})
+    except AuthError:
+      let r = %* {"msg": getCurrentExceptionMsg(), "ok": true}
+      resp $r
+
+runForever()
+----
+
+
+Contributions and feedback are welcome.
