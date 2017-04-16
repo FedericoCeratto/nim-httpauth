@@ -51,7 +51,7 @@ mongodb_functional:
 functional: build_functional_tests sqlite_functional mysql_functional etcd_functional mongodb_functional
 
 # CircleCI does not provide some databases
-circleci: build_functional_tests sqlite_functional recreate_mysql_db mysql_functional mongodb_functional
+circleci: recreate_mysql_db dbonly_functional build_functional_tests sqlite_functional mysql_functional mongodb_functional
 
 start_databases:
 	sudo systemctl start etcd.service

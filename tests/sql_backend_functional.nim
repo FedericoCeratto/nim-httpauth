@@ -1,8 +1,6 @@
-#
 ## Nim HTTP Authentication and Authorization - SQLite Backend functional tests
-#
-# Copyright 2016 Federico Ceratto <federico.ceratto@gmail.com>
-# Released under LGPLv3 License, see LICENSE file
+## Copyright 2016 Federico Ceratto <federico.ceratto@gmail.com>
+## Released under LGPLv3 License, see LICENSE file
 
 import unittest,
   times,
@@ -48,13 +46,25 @@ suite "SQL test $#" % db_uri:
     b.set_user(u)
     assert b.count_users() == 1
 
-    assert b.get_user("foo") == u
+    block:
+      let user = b.get_user("foo")
+      assert user.username == u.username
+      assert user.role == u.role
+      assert user.description == u.description
+      assert user.email_addr == u.email_addr
+      assert user.hash == u.hash
+      assert user.creation_date == u.creation_date
+      assert user.last_login == u.last_login
 
-    var cnt = 0
+    assert b.list_users().len == 1
     for user in b.list_users():
-      assert user == u
-      cnt.inc
-    assert cnt == 1
+      assert user.username == u.username
+      assert user.role == u.role
+      assert user.description == u.description
+      assert user.email_addr == u.email_addr
+      assert user.hash == u.hash
+      assert user.creation_date == u.creation_date
+      assert user.last_login == u.last_login
 
     b.delete_user("foo")
     assert b.count_users() == 0
@@ -72,13 +82,15 @@ suite "SQL test $#" % db_uri:
     b.set_role(r)
     assert b.count_roles() == 1
 
-    assert b.get_role("foo") == r
+    block:
+      let role = b.get_role("foo")
+      assert role.name == r.name
+      assert role.level == r.level
 
-    var cnt = 0
+    assert b.list_roles().len == 1
     for role in b.list_roles():
-      assert role == r
-      cnt.inc
-    assert cnt == 1
+      assert role.name == r.name
+      assert role.level == r.level
 
     b.delete_role("foo")
     assert b.count_roles() == 0
@@ -97,16 +109,27 @@ suite "SQL test $#" % db_uri:
     b.set_pending_registration("reg_code_xyz", u)
     assert b.count_pending_registrations() == 1
 
-    assert b.get_pending_registration("reg_code_xyz") == u
+    assert b.list_pending_registrations().len == 1
+    for pr in b.list_pending_registrations():
+      assert pr.username == u.username
+      assert pr.role == u.role
+      assert pr.email_addr == u.email_addr
+      assert pr.description == u.description
+      assert pr.hash == u.hash
+      assert pr.creation_date == u.creation_date
 
-    var cnt = 0
-    for pending_registration in b.list_pending_registrations():
-      assert pending_registration == u
-      cnt.inc
-    assert cnt == 1
+    block:
+      let pr = b.get_pending_registration("reg_code_xyz")
+      assert pr.username == u.username
+      assert pr.role == u.role
+      assert pr.email_addr == u.email_addr
+      assert pr.description == u.description
+      assert pr.hash == u.hash
+      assert pr.creation_date == u.creation_date
 
     b.delete_pending_registration("reg_code_xyz")
     assert b.count_pending_registrations() == 0
+    assert b.list_pending_registrations().len == 0
 
 
 suite "parse_uri":

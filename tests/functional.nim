@@ -1,9 +1,7 @@
-#
-# Nim HTTP Authentication and Authorization
-# Functional tests. HTTP headers are mocked
-#
-# Copyright 2016 Federico Ceratto <federico.ceratto@gmail.com>
-# Released under LGPLv3 License, see LICENSE file
+## Nim HTTP Authentication and Authorization
+## Functional tests. HTTP headers are mocked
+## Copyright 2016 Federico Ceratto <federico.ceratto@gmail.com>
+## Released under LGPLv3 License, see LICENSE file
 
 import unittest,
   httpcore,
