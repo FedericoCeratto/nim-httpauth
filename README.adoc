@@ -41,6 +41,15 @@ nimble install redis         # Redis
 nimble install nimongo       # MongoDB
 ----
 
+==== Running the demo
+
+[source,bash]
+----
+make build_integration_server && ./tests/integration_server
+----
+
+Connect to http://localhost:5000/
+
 === Usage
 
 Choose one of the ready-to-use backends or implement your own.
@@ -75,9 +84,28 @@ The provided backends for MySQL, PostgreSQL, SQLite, etcd, Redis create their ow
 
 They are optimized for login speed and minimizing DB traffic.
 
+===== Backends initialization
+
+Built-in or custom backends are initialized using an URI and passed to newHTTPAuth:
+The URI syntax is: <db_type>://[<username>[:password]@]<address>[:port]/<db_name>
+Some backends support less parameters.
+SQLite uses file paths.
+
+.Examples:
+[source,nim]
+----
+let backend = newSQLBackend("mysql://root@localhost/httpauth_test")
+let backend2 = newSQLBackend("sqlite:///tmp/httpauth_test.sqlite3")
+let backend3 = newSQLBackend("mysql://root@localhost/httpauth_test")
+let backend4 = newEtcdBackend("etcd://localhost:2379/httpauth_test")
+let backend5 = newRedisBackend("redis://localhost:2884/httpauth_test")
+let backend6 = newMongoDbBackend("mongodb://localhost/httpauth_test")
+var auth = newHTTPAuth("localhost", backend)
+----
+
 ==== Security
 
-Cookie-based sessions are encrypted and signed to prevent tampering.
+Cookie-based sessions are encrypted and signed to protect from cookie exfiltration from the browser.
 Registration and password reset tokens are signed and have a timeout.
 Passwords are stored using Scrypt or Argon2.
 
@@ -147,11 +175,6 @@ routes:
     except AuthError:
       resp "Sorry, you are not authorized."
     resp """Welcome! <a href="/admin">Admin page</a> <a href="/logout">Logout</a>"""
-
-  #get "/restricted_download":
-  #  ## Only authenticated users can download this file from ./public
-  #  auth.require()
-  #  resp bottle.static_file("static_file", root=".")
 
   get "/my_role":
     ## Show current user role

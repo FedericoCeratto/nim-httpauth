@@ -1,17 +1,25 @@
 
-# Integration test
-
-integration:
-	nim c -p=. tests/integration.nim
-	./tests/integration_server &
-	sleep 0.5
-	./tests/integration || echo "TEST FAILED"
-	killall integration_server
-
-
 recreate_mysql_db:
 	mysql -uroot -e "DROP DATABASE IF EXISTS httpauth_test;"
 	mysql -uroot -e "CREATE DATABASE httpauth_test;"
+
+
+# Integration test - spawn a local webserver
+
+run_integration_test:
+	test -f ./tests/integration_server
+	test -f ./tests/integration
+	./tests/integration
+
+build_integration_test:
+	nim c -p=. -d:ssl -d:mock_send_email tests/integration.nim
+
+build_integration_server:
+	# The server is expected to build without installing libraries for optional backends
+	nim c -p=. -d:ssl -d:mock_send_email tests/integration_server.nim
+
+integration: build_integration_server build_integration_test run_integration_test
+
 
 # Database-only tests - httpauth.nim's logic is not tested
 

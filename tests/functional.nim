@@ -27,15 +27,24 @@ const
   test_basedir = "/tmp/test_httpauth/functional"
   test_admin_pwd = "hunter123"
 
-let db_engine_name = db_uri.split("://")[0]
-let backend =
-  if db_engine_name == "sqlite": newSQLBackend(db_uri=db_uri)
-  elif db_engine_name == "mysql": newSQLBackend(db_uri=db_uri)
-  elif db_engine_name == "postgres": newSQLBackend(db_uri=db_uri)
-  elif db_engine_name == "etcd": newEtcdBackend(db_uri=db_uri)
-  elif db_engine_name == "redis": newRedisBackend(db_uri=db_uri)
-  elif db_engine_name == "mongodb": newMongoDbBackend(db_uri=db_uri)
-  else: newJsonBackend(test_basedir)
+proc pick_builtin_backend(db_uri: string): HTTPAuthBackend =
+  let db_engine_name = db_uri.split("://")[0]
+  case db_engine_name:
+  of "sqlite":
+    result = newSQLBackend(db_uri=db_uri)
+  of "mysql":
+    result = newSQLBackend(db_uri=db_uri)
+  of "postgres":
+    result = newSQLBackend(db_uri=db_uri)
+  of "etcd":
+    result = newEtcdBackend(db_uri=db_uri)
+  of "redis":
+    result = newRedisBackend(db_uri=db_uri)
+  of "mongodb":
+    result = newMongoDbBackend(db_uri=db_uri)
+
+let backend = pick_builtin_backend(db_uri)
+
 
 proc accept_cookie(headers: HttpHeaders) =
   ## Simulate client receiving Set-Cookie

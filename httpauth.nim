@@ -27,8 +27,6 @@ import base,
   json_backend,
   sql_backend
 
-## TODO: make redis, etcd, MongoDB optional
-
 export newJsonBackend,
   newSQLBackend,
   AuthError,
@@ -48,7 +46,7 @@ when defined(mongodb):
 
 
 const
-  deleted_cookie_expiration_time = "Thu, 01-Jan-1970 00:00:01 GMT"
+  deleted_cookie_expiration_time = "Thu, 01 Jan 1970 00:00:00 GMT"
   cookie_expiration_time_fmt = "ddd, dd-mmm-yyyy HH:MM:SS GMT"
   admin_level = 100
 
@@ -137,7 +135,7 @@ proc hash(self: HTTPAuth, username, pwd: string, algo:HashingAlgorithm, salt="")
 
 # # Cookies and session
 
-proc set_auth_cookie(self: HTTPAuth, value: string) =
+proc set_auth_cookie*(self: HTTPAuth, value: string) =
   ## Set auth session cookie
   ## FIXME dot on domain
   let cookie = setCookie(
@@ -148,7 +146,7 @@ proc set_auth_cookie(self: HTTPAuth, value: string) =
   self.headers.add("Set-Cookie", cookie[12..^1])
 
 
-proc delete_auth_cookie(self: HTTPAuth) =
+proc delete_auth_cookie*(self: HTTPAuth) =
   ## Delete auth session cookie
   ## FIXME dot on domain
   let cookie = setCookie(
@@ -571,7 +569,7 @@ proc shutdown*(self: HTTPAuth) =
   self.backend.shutdown()
 
 proc headers_hook*(self: var HTTPAuth, headers: HttpHeaders) =
-  ## Capture headers
+  ## Capture headers sent by client
   self.headers = headers
   #assert self.headers != nil, "FIXME"
 
