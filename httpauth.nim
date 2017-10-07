@@ -547,7 +547,7 @@ proc newHTTPAuth*(domain: string, backend: HTTPAuthBackend, cookie_name="", cook
     https_only_cookies: https_only_cookies,
     preferred_hashing_algorithm: preferred_hashing_algorithm,
   )
-  result.mailer = newMailer() #FIXME
+  result.mailer = newMailer() #FIXME: pass arguments
   assert result.backend != nil
 
   result.cookie_name = if cookie_name == "": domain else: cookie_name

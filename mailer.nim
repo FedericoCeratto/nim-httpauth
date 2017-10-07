@@ -23,10 +23,10 @@ proc newMailer*(smtp_server_addr="localhost", smtp_server_port=587.Port,
   ## Create SMTP Mailer
   result = Mailer(smtp_server_addr: smtp_server_addr,
     smtp_server_port: smtp_server_port,    username: username, password: password,
-    use_tls: use_tls, sender_email_addr: sender_email_addr
+    use_tls: use_tls, sender_email_addr: sender_email_addr, connected: false
   )
   assert result.sender_email_addr != nil
-  result.client = newAsyncSmtp(smtp_server_addr, smtp_server_port, useSsl=use_tls)
+  result.client = newAsyncSmtp(useSsl=use_tls)
 
 
 proc send_email*(self: Mailer, recipient, subject, message: string) {.async.} =
@@ -39,7 +39,8 @@ proc send_email*(self: Mailer, recipient, subject, message: string) {.async.} =
     mock_email_spool.add m
     return
 
-  await self.client.connect()
+  if not self.connected:
+    await self.client.connect(self.smtp_server_addr, self.smtp_server_port)
   if self.username != "":
     await self.client.auth(self.username, self.password)
   await self.client.sendMail(self.sender_email_addr, recipients, $encoded)

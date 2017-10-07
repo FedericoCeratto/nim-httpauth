@@ -39,6 +39,7 @@ type
     use_tls*: bool
     client*: AsyncSmtp
     sender_email_addr*: string
+    connected*: bool
 
 proc `$`*(r: Role): string =
   ##
