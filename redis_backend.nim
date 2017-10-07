@@ -161,7 +161,7 @@ method set_user*(self: RedisBackend, user: User) =
 
 method delete_user*(self: RedisBackend, username: string) =
   ## Delete User
-  discard self.client.del(self.userpath / username)
+  discard self.client.del(@[self.userpath / username])
 
 method count_users*(self: RedisBackend): int =
   ## Count users
@@ -209,7 +209,7 @@ method update_role*(self: RedisBackend, role: Role) =
 
 method delete_role*(self: RedisBackend, role: string) =
   ## Delete Role
-  discard self.client.del(self.rolepath / role)
+  discard self.client.del(@[self.rolepath / role])
 
 method count_roles*(self: RedisBackend): int =
   ## Count roles
@@ -262,7 +262,7 @@ method set_pending_registration*(self: RedisBackend, reg_code: string, pending_r
 
 method delete_pending_registration*(self: RedisBackend, reg_code: string) =
   ## Delete PendingRegistration
-  discard self.client.del(self.pending_reg_path / reg_code)
+  discard self.client.del(@[self.pending_reg_path / reg_code])
 
 method count_pending_registrations*(self: RedisBackend): int =
   ## Count pending_registrations
@@ -289,4 +289,4 @@ method list_pending_registrations*(self: RedisBackend): seq[PendingRegistration]
 
 method purge_all_tables*(self: RedisBackend) =
   for key in self.client.keys(self.basepath / "*"):
-    discard self.client.del(key)
+    discard self.client.del(@[key])
