@@ -10,7 +10,7 @@ import json,
   unittest
 
 import testclient
-from cookiejar import count, pprint
+from httpauthpkg/cookiejar import count, pprint
 
 import integration_test_params
 

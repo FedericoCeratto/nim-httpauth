@@ -22,10 +22,10 @@ from times import getGMTime, fromSeconds
 import libsodium.sodium
 import libsodium.sodium_sizes
 
-import base,
+import httpauthpkg/[base,
   mailer,
   json_backend,
-  sql_backend
+  sql_backend]
 
 export newJsonBackend,
   newSQLBackend,
@@ -33,15 +33,15 @@ export newJsonBackend,
   LoginError
 
 when defined(redis):
-  import redis_backend
+  import httpauthpkg/redis_backend
   export newRedisBackend
 
 when defined(etcd):
-  import etcd_backend
+  import httpauthpkg/etcd_backend
   export newEtcdBackend
 
 when defined(mongodb):
-  import mongodb_backend
+  import httpauthpkg/mongodb_backend
   export newMongoDbBackend
 
 

@@ -9,14 +9,14 @@ import unittest,
   tables,
   os
 
-import base
+import httpauthpkg/base
 
 import httpauth
 
 when not defined(mock_send_email):
   {.error: "set -d:mock_send_email".}
 
-from mailer import mock_email_spool
+from httpauthpkg/mailer import mock_email_spool
 
 if paramCount() != 1:
   echo "URL param required"
