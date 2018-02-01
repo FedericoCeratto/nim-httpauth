@@ -184,7 +184,7 @@ proc get_session(self: HTTPAuth): string =
   try:
     let session_desc = crypto_secretbox_open_easy(self.session_key, decoded)
     if session_desc.startswith("session|"):
-      return session_desc[8..^0]
+      return session_desc[8..^1]
     debug "Unable to parse session cookie"
     return ""
   except ValueError:
