@@ -29,6 +29,7 @@ import httpauthpkg/[base,
 
 export newJsonBackend,
   newSQLBackend,
+  HTTPAuthBackend,
   AuthError,
   LoginError
 
