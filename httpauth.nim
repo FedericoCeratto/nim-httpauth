@@ -582,7 +582,7 @@ proc initialize_admin_user*(self: HTTPAuth, username="admin", password="", role=
     info "***********************************"
     info "Generating random admin password..."
     password = safe_encode(randombytes(8))
-    info "Genrated password: '$#'" % password
+    info "Generated password: '$#'" % password
     info "***********************************"
 
   self.backend.set_role(Role(
