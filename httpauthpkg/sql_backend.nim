@@ -80,7 +80,7 @@ iterator db_get_rows(self: SQLBackend, query: SqlQuery, a: varargs[string]): seq
     for r in self.db_conn_postgres.rows(query, a):
       yield r
 
-method create_tables(self: SQLBackend) =
+method create_tables(self: SQLBackend) {.base.} =
   ## Create tables if needed
   self.db_exec(sql("""
     CREATE TABLE IF NOT EXISTS user (
@@ -181,11 +181,11 @@ proc newSQLBackend*(db_uri="httpauth.sqlite3"): SQLBackend =
 
 const timestamp_format = "yyyy-MM-dd HH:mm:ss"
 
-proc db_to_timeinfo(self: SQLBackend, d: string): TimeInfo =
+proc db_to_timeinfo(self: SQLBackend, d: string): DateTime =
   case self.db_kind
   of DBKind.sqlite:
     try:
-      result = d.parseInt.fromSeconds.getGMTime()
+      result = d.parseInt.fromUnix.utc()
     except Exception:
       error "Unable to parse timestamp '$#'" % d
       echo "Unable to parse timestamp '$#'" % d
@@ -199,10 +199,10 @@ proc db_to_timeinfo(self: SQLBackend, d: string): TimeInfo =
     result = d.parse(timestamp_format)
     #result.tzname = "UTC"  # tzname bug
 
-proc timeinfo_to_db(self: SQLBackend, t: TimeInfo): string =
+proc timeinfo_to_db(self: SQLBackend, t: DateTime): string =
   case self.db_kind
   of DBKind.sqlite:
-    result = $t.toTime.toSeconds()
+    result = $t.toTime.toUnix()
   of DBKind.mysql:
     result = t.format(timestamp_format)
   of DBKind.postgres:
@@ -248,7 +248,7 @@ method get_user_by_email*(self: SQLBackend, email_addr: string): User =
 method set_user*(self: SQLBackend, user: User) =
   ## Set User
   assert user.username != ""
-  assert user.username != nil
+
   self.db_exec(sql"REPLACE INTO user (name,role,description,email_addr,hash,creation_date,last_login) VALUES (?,?,?,?,?,?,?)",
     user.username, user.role, user.description, user.email_addr, user.hash,
     self.timeinfo_to_db(user.creation_date),

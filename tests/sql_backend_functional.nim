@@ -17,7 +17,7 @@ let db_uri = paramStr(1)
 
 suite "SQL test $#" % db_uri:
 
-  let t = 1234567890.fromSeconds.getGMTime()
+  let t = 1234567890.fromUnix.utc()
 
   setup:
     let db_engine_name = db_uri.split("://")[0]
