@@ -19,8 +19,8 @@ from strtabs import `[]`, hasKey
 from subexes import subex, format
 from times import getGMTime, fromSeconds
 
-import libsodium.sodium
-import libsodium.sodium_sizes
+import libsodium/sodium
+import libsodium/sodium_sizes
 
 import httpauthpkg/[base,
   mailer,

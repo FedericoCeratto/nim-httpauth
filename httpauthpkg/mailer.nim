@@ -25,7 +25,7 @@ proc newMailer*(smtp_server_addr="localhost", smtp_server_port=587.Port,
     smtp_server_port: smtp_server_port,    username: username, password: password,
     use_tls: use_tls, sender_email_addr: sender_email_addr, connected: false
   )
-  assert result.sender_email_addr != nil
+  assert result.sender_email_addr != ""
   result.client = newAsyncSmtp(useSsl=use_tls)
 
 
@@ -45,4 +45,3 @@ proc send_email*(self: Mailer, recipient, subject, message: string) {.async.} =
     await self.client.auth(self.username, self.password)
   await self.client.sendMail(self.sender_email_addr, recipients, $encoded)
   await self.client.close()
-

@@ -6,7 +6,7 @@
 
 from nativesockets import Port
 from smtp import AsyncSmtp
-from times import TimeInfo
+from times import DateTime
 
 type
   AuthError*  = object of Exception ## Generic Authentication/Authorization exception
@@ -23,14 +23,14 @@ type
   User* = ref object of RootObj
     username*, role*, description*, email_addr*: string
     hash*: string
-    creation_date*, last_login*: TimeInfo
+    creation_date*, last_login*: DateTime
     level*: int
   Role* = ref object of RootObj
     name*: string
     level*: int
   PendingRegistration* = ref object of RootObj
     username*, role*, email_addr*, description*, hash*: string
-    creation_date*: TimeInfo
+    creation_date*: DateTime
   Mailer* = ref object of RootObj
     smtp_server_addr*: string
     smtp_server_port*: Port
