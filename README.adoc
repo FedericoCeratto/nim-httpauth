@@ -28,6 +28,13 @@ Install the dependencies:
 sudo apt-get install libsodium18
 ----
 
+Install the dependencies(macOS):
+[source,bash]
+----
+brew install mysql
+brew install libsodium
+----
+
 === Install
 
 [source,bash]
