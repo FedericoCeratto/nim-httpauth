@@ -67,6 +67,9 @@ functional: build_functional_tests sqlite_functional mysql_functional etcd_funct
 # CircleCI does not provide some databases
 circleci: dbonly_functional build_functional_tests_circleci sqlite_functional mysql_functional mongodb_functional etcd_functional redis_functional
 
+# TravisCI does not provide some databases
+travisci: recreate_mysql_db dbonly_functional build_functional_tests sqlite_functional mysql_functional mongodb_functional
+
 start_databases:
 	sudo systemctl start etcd.service
 	sudo systemctl start mongodb.service

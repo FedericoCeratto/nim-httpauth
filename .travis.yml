@@ -1,0 +1,43 @@
+# Copied from https://github.com/nim-lang/Nim/wiki/BuildServices
+language: c
+env:
+  # Build and test against stable Nim
+  - BRANCH=stable
+os:
+  - windows
+  - linux
+  - osx
+compiler:
+  - gcc
+matrix:
+  allow_failures:
+    # Ignore failures when building against the devel Nim branch
+    - env: BRANCH=devel
+  fast_finish: true
+install:
+  - |
+    if [ -f ~/.nimble/bin/choosenim ]; then
+      echo "Updating Nim using choosenim"
+      choosenim $BRANCH
+    else
+      echo "Installing choosenim and Nim"
+      wget https://raw.githubusercontent.com/dom96/choosenim/master/scripts/choosenim-unix-init.sh
+      sh choosenim-unix-init.sh -y
+    fi
+cache:
+  directories:
+    # cache Nim install across runs
+    - .nimble
+services:
+  - mongodb
+  - mysql
+  - redis-server
+before_script:
+  - export PATH="~/.nimble/bin:$PATH"
+script:
+  - nimble build -y
+  # functional tests
+  - make travisci
+branches:
+  except:
+    - gh-pages
