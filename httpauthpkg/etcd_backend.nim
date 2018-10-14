@@ -67,7 +67,7 @@ proc newEtcdBackend*(db_uri="httpauth.sqlite3"): EtcdBackend =
   ## <engine>://[<dbuser>[:[<dbpassword>]]@]<host>[:port]/<schema>
   ## etcd://localhost/httpauth_test
   let uri = parse_uri(db_uri)
-  assert uri.schema != "" and uri.schema != nil
+  assert uri.schema != ""
 
   var self = EtcdBackend()
     #hostname=uri.hostname, port=2379, proto="http", srv_domain="",
@@ -99,7 +99,7 @@ import json
 
 method get_user*(self: EtcdBackend, username: string): User =
   ## Get User
-  assert username != "" and username != nil
+  assert username != ""
   var u: JsonNode
   try:
     let item = self.client.get(self.userpath / username)
@@ -150,7 +150,6 @@ method get_user_by_email*(self: EtcdBackend, email_addr: string): User =
 method set_user*(self: EtcdBackend, user: User) =
   ## Set User
   assert user.username != ""
-  assert user.username != nil
   let i = %* {
     "role": user.role,
     "description": user.description,
@@ -203,7 +202,7 @@ method list_users*(self: EtcdBackend): seq[User] =
 
 method get_role*(self: EtcdBackend, role: string): Role =
   ## Get Role
-  assert role != "" and role != nil
+  assert role != ""
   let r = self.client.get(self.rolepath / role)
   return Role(name: role, level: r["value"].str.parseInt)
 
@@ -227,6 +226,7 @@ method delete_role*(self: EtcdBackend, role: string) =
   ## Delete Role
   try:
     self.client.del(self.rolepath / role)
+    discard  # workaround for "Error: expression has no type:" error
   except Exception:
     if getCurrentExceptionMsg() == "404 Not Found - Key not found":
       raise newException(RoleNotFoundError, "Role '$#' not found" % role)
@@ -261,7 +261,7 @@ method list_roles*(self: EtcdBackend): seq[Role] =
 
 method get_pending_registration*(self: EtcdBackend, reg_code: string): PendingRegistration =
   ## Get PendingRegistration
-  assert reg_code != "" and reg_code != nil
+  assert reg_code != ""
   var r: JsonNode
   try:
     let item = self.client.get(self.pending_reg_path / reg_code)

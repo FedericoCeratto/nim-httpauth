@@ -362,8 +362,8 @@ proc validate_registration*(self: HTTPAuth, registration_code: string) =
 
 proc generate_reset_code(self: HTTPAuth, username, email_addr: string): string =
   ## Generate a reset_code token
-  assert username != nil and username != ""
-  assert email_addr != nil
+  assert username != ""
+  assert email_addr != ""
   let
     tstamp = getTime()
     msg = "reset|$#|$#|$#" % [username, email_addr, $tstamp]
@@ -403,7 +403,7 @@ proc send_password_reset_email*(self: HTTPAuth, username="", email_addr="",
     reset_code,
     getTime().getGMTime()
   )
-  assert self.mailer.sender_email_addr != nil
+  assert self.mailer.sender_email_addr != ""
   asyncCheck self.mailer.send_email(email_addr, subject, email_text)
 
 

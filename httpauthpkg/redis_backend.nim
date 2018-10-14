@@ -68,7 +68,7 @@ proc newRedisBackend*(db_uri="httpauth.sqlite3"): RedisBackend =
   ## <engine>://[<dbuser>[:[<dbpassword>]]@]<host>[:port]/<schema>
   ## redis://localhost/httpauth_test
   let uri = parse_uri(db_uri)
-  assert uri.schema != "" and uri.schema != nil
+  assert uri.schema != ""
 
   var self = RedisBackend()
   self.client = open(
