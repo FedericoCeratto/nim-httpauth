@@ -30,7 +30,7 @@ dbonly_sqlite_functional:
 	./tests/sql_backend_functional sqlite:///tmp/httpauth_test.sqlite3
 
 dbonly_mysql_functional:
-	./tests/sql_backend_functional mysql://root@localhost/httpauth_test
+	./tests/sql_backend_functional mysql://root@127.0.0.1/httpauth_test
 
 dbonly_functional: build_dbonly_functional_tests dbonly_sqlite_functional dbonly_mysql_functional
 
@@ -48,21 +48,21 @@ sqlite_functional:
 	./tests/functional sqlite:///tmp/httpauth_test.sqlite3
 
 mysql_functional:
-	./tests/functional mysql://root@localhost/httpauth_test
+	./tests/functional mysql://root@127.0.0.1/httpauth_test
 
 etcd_functional:
-	./tests/functional etcd://localhost:2379/httpauth_test
+	./tests/functional etcd://127.0.0.1:2379/httpauth_test
 
 redis_functional:
-	./tests/functional redis://localhost:2884/httpauth_test
+	./tests/functional redis://127.0.0.1:2884/httpauth_test
 
 mongodb_functional:
-	./tests/functional mongodb://localhost/httpauth_test
+	./tests/functional mongodb://127.0.0.1/httpauth_test
 
 functional: build_functional_tests sqlite_functional mysql_functional etcd_functional mongodb_functional
 
 # CircleCI does not provide some databases
-circleci: recreate_mysql_db dbonly_functional build_functional_tests_circleci sqlite_functional mysql_functional
+circleci: dbonly_functional build_functional_tests_circleci sqlite_functional mysql_functional
 
 start_databases:
 	sudo systemctl start etcd.service
