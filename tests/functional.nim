@@ -39,9 +39,11 @@ proc pick_builtin_backend(db_uri: string): HTTPAuthBackend =
   of "etcd":
     result = newEtcdBackend(db_uri=db_uri)
   of "redis":
-    result = newRedisBackend(db_uri=db_uri)
+    when defined(redis):
+      result = newRedisBackend(db_uri=db_uri)
   of "mongodb":
-    result = newMongoDbBackend(db_uri=db_uri)
+    when defined(mongodb):
+      result = newMongoDbBackend(db_uri=db_uri)
 
 let backend = pick_builtin_backend(db_uri)
 
