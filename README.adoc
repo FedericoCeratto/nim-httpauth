@@ -28,7 +28,7 @@ Install the dependencies:
 sudo apt-get install libsodium18
 ----
 
-Install the dependencies(macOS):
+Install the dependencies (macOS):
 [source,bash]
 ----
 brew install mysql
@@ -60,6 +60,11 @@ Connect to http://localhost:5000/
 === Usage
 
 Choose one of the ready-to-use backends or implement your own.
+
+Set the -d:redis -d:etcd -d:mongodb defines as needed to enable backends other than MySQL.
+
+NOTE: Always set the SSL define: -d:ssl
+
 You can use the existing backends as an example; Implement the HTTPAuthBackend methods from base.nim.
 
 There is an SMTP client called Mailer send registration / password reset emails.
