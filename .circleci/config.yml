@@ -16,7 +16,9 @@ jobs:
       - image: bitnami/etcd:latest
         environment:
           ALLOW_NONE_AUTHENTICATION=yes
-      # missing: Redis
+      - image: bitnami/redis:latest
+        environment:
+          - ALLOW_EMPTY_PASSWORD=yes
     steps:
       - run: echo 'export PATH=~/.nimble/bin:$PATH' >> $BASH_ENV
       - checkout

@@ -39,10 +39,10 @@ dbonly_functional: build_dbonly_functional_tests dbonly_sqlite_functional dbonly
 # The libraries for etcd, MongoDB and Redis are required
 
 build_functional_tests:
-	nim c -p=. -d:mock_send_email -d:ssl -d:etcd -d:mongodb -d:redis tests/functional.nim
+	nim c -p=. -d:mock_send_email -d:ssl -d:etcd -d:mongodb --nilseqs:on -d:redis tests/functional.nim
 
 build_functional_tests_circleci:
-	nim c -p=. -d:mock_send_email -d:ssl -d:etcd -d:mongodb tests/functional.nim
+	nim c -p=. -d:mock_send_email -d:ssl -d:etcd -d:mongodb --nilseqs:on -d:redis tests/functional.nim
 
 sqlite_functional:
 	./tests/functional sqlite:///tmp/httpauth_test.sqlite3
@@ -65,7 +65,7 @@ mongodb_functional:
 functional: build_functional_tests sqlite_functional mysql_functional etcd_functional mongodb_functional
 
 # CircleCI does not provide some databases
-circleci: dbonly_functional build_functional_tests_circleci sqlite_functional mysql_functional mongodb_functional etcd_functional
+circleci: dbonly_functional build_functional_tests_circleci sqlite_functional mysql_functional mongodb_functional etcd_functional redis_functional
 
 start_databases:
 	sudo systemctl start etcd.service
