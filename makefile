@@ -42,7 +42,7 @@ build_functional_tests:
 	nim c -p=. -d:mock_send_email -d:ssl -d:etcd -d:mongodb -d:redis tests/functional.nim
 
 build_functional_tests_circleci:
-	nim c -p=. -d:mock_send_email -d:ssl -d:etcd tests/functional.nim
+	nim c -p=. -d:mock_send_email -d:ssl -d:etcd -d:mongodb tests/functional.nim
 
 sqlite_functional:
 	./tests/functional sqlite:///tmp/httpauth_test.sqlite3
@@ -57,12 +57,15 @@ redis_functional:
 	./tests/functional redis://127.0.0.1:2884/httpauth_test
 
 mongodb_functional:
+	mongo httpauth_test --eval 'db.pending_registrations.drop()'
+	mongo httpauth_test --eval 'db.roles.drop()'
+	mongo httpauth_test --eval 'db.users.drop()'
 	./tests/functional mongodb://127.0.0.1/httpauth_test
 
 functional: build_functional_tests sqlite_functional mysql_functional etcd_functional mongodb_functional
 
 # CircleCI does not provide some databases
-circleci: dbonly_functional build_functional_tests_circleci sqlite_functional mysql_functional
+circleci: dbonly_functional build_functional_tests_circleci sqlite_functional mysql_functional mongodb_functional
 
 start_databases:
 	sudo systemctl start etcd.service

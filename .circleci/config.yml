@@ -12,12 +12,8 @@ jobs:
         environment:
           POSTGRES_USER: root
           POSTGRES_DB: circle-test_test
-      # SQLite
-      # MySQL
-      # PostgreSQL
-      # Etcd
-      # Redis
-      # MongoDB
+      - image: circleci/mongo:latest
+      # missing: Etcd, Redis
     steps:
       - run: echo 'export PATH=~/.nimble/bin:$PATH' >> $BASH_ENV
       - checkout
@@ -30,6 +26,12 @@ jobs:
             apt-get install -y --no-install-recommends make libmysqlclient-dev libmysqlclient20 libpq5 libsodium23
             nimble install libsodium -y
             nimble install etcd_client -y
+            # MongoDB deps
+            apt-get install -y mongodb-clients
+            nimble install -y scram@#head
+            nimble install -y sha1@#head
+            nimble install -y hmac@#head
+            nimble install -y nimongo@#head
       - save_cache:
           key: cache-0002
           paths:
