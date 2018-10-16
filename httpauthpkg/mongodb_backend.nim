@@ -76,7 +76,7 @@ proc timeinfo_to_db(t: TimeInfo): string =
 
 method get_user*(self: MongoDbBackend, username: string): User =
   ## Get User
-  assert username != "" and username != nil
+  assert username != ""
   var u: Bson
   try:
     u = self.user_collection.find(%*{"name": username}).one()
@@ -95,7 +95,7 @@ method get_user*(self: MongoDbBackend, username: string): User =
 
 method get_user_by_email*(self: MongoDbBackend, email_addr: string): User =
   ## Get User by email address
-  assert email_addr != "" and email_addr != nil
+  assert email_addr != ""
   var u: Bson
   try:
     u = self.user_collection.find(%*{"email_addr": email_addr}).one()
@@ -114,7 +114,7 @@ method get_user_by_email*(self: MongoDbBackend, email_addr: string): User =
 
 method set_user*(self: MongoDbBackend, user: User) =
   ## Set User
-  assert user.username != "" and user.username != nil
+  assert user.username != ""
   let i = %* {
     "name": user.username,
     "role": user.role,
@@ -158,7 +158,7 @@ method list_users*(self: MongoDbBackend): seq[User] =
 
 method get_role*(self: MongoDbBackend, role: string): Role =
   ## Get Role
-  assert role != "" and role != nil
+  assert role != ""
   let r = self.role_collection.find(%*{"name": role}).one()
   return Role(name: role, level: r["level"])
 
@@ -192,7 +192,8 @@ method delete_role*(self: MongoDbBackend, role: string) =
   except Exception:
     if getCurrentExceptionMsg() == "404 Not Found - Key not found":
       raise newException(RoleNotFoundError, "Role '$#' not found" % role)
-    raise getCurrentException()
+    else:
+      raise getCurrentException()
 
 method count_roles*(self: MongoDbBackend): int =
   ## Count roles
@@ -214,7 +215,7 @@ method list_roles*(self: MongoDbBackend): seq[Role] =
 
 method get_pending_registration*(self: MongoDbBackend, reg_code: string): PendingRegistration =
   ## Get PendingRegistration
-  assert reg_code != "" and reg_code != nil
+  assert reg_code != ""
   var r: Bson
   try:
     r = self.pending_reg_collection.find(%*{"code": reg_code}).one()
