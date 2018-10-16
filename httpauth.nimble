@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.2"
+version       = "0.1.3"
 author        = "Federico Ceratto"
 description   = "HTTP Authentication and Authorization"
 license       = "LGPLv3"
