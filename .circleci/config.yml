@@ -13,7 +13,10 @@ jobs:
           POSTGRES_USER: root
           POSTGRES_DB: circle-test_test
       - image: circleci/mongo:latest
-      # missing: Etcd, Redis
+      - image: bitnami/etcd:latest
+        environment:
+          ALLOW_NONE_AUTHENTICATION=yes
+      # missing: Redis
     steps:
       - run: echo 'export PATH=~/.nimble/bin:$PATH' >> $BASH_ENV
       - checkout
