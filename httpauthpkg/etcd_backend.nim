@@ -30,7 +30,7 @@ bothuserpass <- ({\w+} ':' {\w+} '@')
 onlyuser <- ({\w+} {\\?} '@')
 nousernopass <- ( {\\?} {\\?} )
 
-hostname <- {\w+} / {\d+\.\d+\.\d+\.\d+}
+hostname <- {\w+(\.\w+)*}
 port <- (':' {\d+}) / ({\\?})
 schema <- {\w+}
 """
