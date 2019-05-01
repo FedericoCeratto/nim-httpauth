@@ -2,6 +2,9 @@
 == HTTP authentication library for Nim
 
 image:https://circleci.com/gh/FedericoCeratto/nim-httpauth.svg?style=svg["CircleCI", link="https://circleci.com/gh/FedericoCeratto/nim-httpauth"]
+image:https://img.shields.io/badge/status-stable-green.svg[badge]
+image:https://img.shields.io/github/tag/FedericoCeratto/nim-httpauth.svg[tags]
+image:https://img.shields.io/badge/License-LGPL%20v3-blue.svg[License]
 
 .Features:
 [none]
