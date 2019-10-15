@@ -74,10 +74,11 @@ proc parseSetCookie*(header: string): Cookie =
       if not (val.endswith(" GMT") or val.endswith(" UTC")):
         continue
       result.session = false
-      var exp = parse(val, "ddd, dd MMM yyyy HH:mm:ss")
+      let zone = utc()
+      var exp = parse(val, "ddd, dd MMM yyyy HH:mm:ss", zone)
       #         parse(v, "ddd, dd MMM yy HH:mm:SS")
       exp.isDST = false
-      exp.timezone = 0
+      exp.timezone = zone
       result.expires = toTime exp
     of "secure":
       result.secure = true
@@ -102,11 +103,11 @@ proc add_cookies*(jar: var CookieJar, raw_cookies: seq[string], domain, path: st
   for rc in raw_cookies:
     var cookie = parseSetCookie(rc)
 
-    if cookie.domain == nil:
+    if cookie.domain.len == 0:
       cookie.domain = domain
       cookie.host_only = true
 
-    if cookie.path == nil:
+    if cookie.path.len == 0:
       cookie.path = path
 
     if cookie.session or (cookie.expires > getTime()):
