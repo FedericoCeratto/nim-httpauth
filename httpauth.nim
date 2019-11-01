@@ -16,7 +16,6 @@ import asyncdispatch,
 import tables, json, os
 
 from strtabs import `[]`, hasKey
-from subexes import subex, format
 from times import getGMTime, fromSeconds
 
 import libsodium/sodium
@@ -25,7 +24,8 @@ import libsodium/sodium_sizes
 import httpauthpkg/[base,
   mailer,
   json_backend,
-  sql_backend]
+  sql_backend,
+  format_templates]
 
 export newJsonBackend,
   newSQLBackend,
@@ -294,17 +294,15 @@ proc register*(self: HTTPAuth, username, password, email_addr: string, role="use
     creation_date = getTime().getGMTime()
 
     registration_email_fn = "registration_email.tpl"
-    registration_email_sbx = registration_email_fn.readFile.subex #FIXME
+    registration_email_tpl = registration_email_fn.readFile()
 
   let
     url = "APP_URL"  # FIXME
-    email_text = registration_email_sbx.format(
-      username,
-      url,
-      registration_code,
-      email_addr,
-      role,
-      creation_date
+    email_text = registration_email_tpl.format(
+      "username", username,
+      "url", url,
+      "registration_code", registration_code,
+      "email_addr", email_addr
     )
 
   # send registration email
@@ -395,14 +393,14 @@ proc send_password_reset_email*(self: HTTPAuth, username="", email_addr="",
   let reset_code = self.generate_reset_code(user.username, user.email_addr)
 
   # send reset email
-  let registration_email_fn = "password_reset_email.tpl" #FIXME
-  let registration_email_sbx = registration_email_fn.readFile.subex #FIXME
-  let email_text = registration_email_sbx.format(
-    username,
-    email_addr,
-    reset_code,
-    getTime().getGMTime()
+  let registration_email_fn = "password_reset_email.tpl"
+  let registration_email_tpl = registration_email_fn.readFile()
+  let email_text = registration_email_tpl.format(
+    "username", username,
+    "reset_code", reset_code,
+    "reset_time", getTime().getGMTime()
   )
+
   assert self.mailer.sender_email_addr != ""
   asyncCheck self.mailer.send_email(email_addr, subject, email_text)
 
