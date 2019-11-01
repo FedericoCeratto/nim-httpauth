@@ -24,8 +24,7 @@ import libsodium/sodium_sizes
 import httpauthpkg/[base,
   mailer,
   json_backend,
-  sql_backend,
-  format_templates]
+  sql_backend]
 
 export newJsonBackend,
   newSQLBackend,
@@ -392,13 +391,15 @@ proc send_password_reset_email*(self: HTTPAuth, username="", email_addr="",
   # generate a reset_code token
   let reset_code = self.generate_reset_code(user.username, user.email_addr)
 
+  const reset_time_format = "YYYY-MM-dd hh:mm:ss"
+
   # send reset email
   let registration_email_fn = "password_reset_email.tpl"
   let registration_email_tpl = registration_email_fn.readFile()
   let email_text = registration_email_tpl.format(
     "username", username,
     "reset_code", reset_code,
-    "reset_time", getTime().getGMTime()
+    "reset_time", getTime().getGMTime().format(reset_time_format)
   )
 
   assert self.mailer.sender_email_addr != ""
