@@ -1,7 +1,12 @@
 
-recreate_mysql_db:
-	mysql -uroot -e "DROP DATABASE IF EXISTS httpauth_test;"
-	mysql -uroot -e "CREATE DATABASE httpauth_test;"
+mysql_create_db_user:
+	sudo mysql -e "CREATE USER 'httpauthtest'@'localhost';"
+	sudo mysql -e "GRANT ALL ON httpauth_test.* TO 'httpauthtest'@'localhost';" mysql
+	sudo mysql -e "FLUSH PRIVILEGES;"
+
+mysql_recreate_database:
+	mysql -uhttpauthtest -e "DROP DATABASE IF EXISTS httpauth_test;"
+	mysql -uhttpauthtest -e "CREATE DATABASE httpauth_test;"
 
 
 # Integration test - spawn a local webserver
@@ -30,45 +35,43 @@ dbonly_sqlite_functional:
 	./tests/sql_backend_functional sqlite:///tmp/httpauth_test.sqlite3
 
 dbonly_mysql_functional:
-	./tests/sql_backend_functional mysql://root@127.0.0.1/httpauth_test
+	./tests/sql_backend_functional mysql://httpauthtest@127.0.0.1/httpauth_test
 
-dbonly_functional: build_dbonly_functional_tests dbonly_sqlite_functional dbonly_mysql_functional
+functional_dbonly: build_functional_dbonly_tests dbonly_functional_sqlite dbonly_functional_mysql
 
 
 # Functional tests
 # The libraries for etcd, MongoDB and Redis are required
 
 build_functional_tests:
-	nim c -p=. -d:mock_send_email -d:ssl -d:etcd -d:mongodb --nilseqs:on -d:redis tests/functional.nim
+	nim c -p=. -d:mock_send_email -d:ssl -d:etcd -d:redis tests/functional.nim
 
-build_functional_tests_circleci:
-	nim c -p=. -d:mock_send_email -d:ssl -d:etcd -d:mongodb --nilseqs:on -d:redis tests/functional.nim
+build_functional_tests_mongodb:
+	nim c -p=. -d:mock_send_email -d:ssl -d:mongodb -d:nimOldCaseObjects tests/functional.nim
 
-sqlite_functional:
+functional_sqlite:
 	./tests/functional sqlite:///tmp/httpauth_test.sqlite3
 
-mysql_functional:
-	./tests/functional mysql://root@127.0.0.1/httpauth_test
+functional_mysql:
+	./tests/functional mysql://httpauthtest@127.0.0.1/httpauth_test
 
-etcd_functional:
+functional_etcd:
 	./tests/functional etcd://127.0.0.1:2379/httpauth_test
 
-redis_functional:
+functional_redis:
 	./tests/functional redis://127.0.0.1:2884/httpauth_test
 
-mongodb_functional:
+functional_mongodb:
 	mongo httpauth_test --eval 'db.pending_registrations.drop()'
 	mongo httpauth_test --eval 'db.roles.drop()'
 	mongo httpauth_test --eval 'db.users.drop()'
 	./tests/functional mongodb://127.0.0.1/httpauth_test
 
-functional: build_functional_tests sqlite_functional mysql_functional etcd_functional mongodb_functional
+functional: build_functional_tests functional_sqlite functional_mysql functional_etcd build_functional_tests_mongodb functional_mongodb
 
-# CircleCI does not provide some databases
-circleci: dbonly_functional build_functional_tests_circleci sqlite_functional mysql_functional mongodb_functional etcd_functional redis_functional
-
-# TravisCI does not provide some databases
-travisci: recreate_mysql_db dbonly_functional build_functional_tests sqlite_functional mysql_functional mongodb_functional
+# CircleCI
+# FIXME MySQL Etcd Redis
+circleci: build_functional_tests functional_sqlite build_functional_tests_mongodb functional_mongodb
 
 start_databases:
 	sudo systemctl start etcd.service

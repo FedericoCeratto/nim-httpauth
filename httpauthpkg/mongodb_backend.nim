@@ -65,10 +65,10 @@ proc newMongoDbBackend*(db_uri="mongodb://localhost/httpauth_test", ): MongoDbBa
 
 const timestamp_format = "yyyy-MM-dd HH:mm:ss"
 
-proc db_to_timeinfo(d: string): TimeInfo =
+proc db_to_datetime(d: string): DateTime =
   d.parseInt.fromSeconds.getGMTime()
 
-proc timeinfo_to_db(t: TimeInfo): string =
+proc datetime_to_db(t: DateTime): string =
   $t.toTime.toSeconds().int
 
 
@@ -89,8 +89,8 @@ method get_user*(self: MongoDbBackend, username: string): User =
     description:u["description"],
     email_addr:u["email_addr"],
     hash:u["hash"],
-    creation_date:u["creation_date"].db_to_timeinfo(),
-    last_login:u["last_login"].db_to_timeinfo(),
+    creation_date:u["creation_date"].db_to_datetime(),
+    last_login:u["last_login"].db_to_datetime(),
   )
 
 method get_user_by_email*(self: MongoDbBackend, email_addr: string): User =
@@ -108,8 +108,8 @@ method get_user_by_email*(self: MongoDbBackend, email_addr: string): User =
     description:u["description"],
     email_addr:u["email_addr"],
     hash:u["hash"],
-    creation_date:u["creation_date"].db_to_timeinfo(),
-    last_login:u["last_login"].db_to_timeinfo(),
+    creation_date:u["creation_date"].db_to_datetime(),
+    last_login:u["last_login"].db_to_datetime(),
   )
 
 method set_user*(self: MongoDbBackend, user: User) =
@@ -121,8 +121,8 @@ method set_user*(self: MongoDbBackend, user: User) =
     "description": user.description,
     "email_addr": user.email_addr,
     "hash": user.hash,
-    "creation_date": user.creation_date.timeinfo_to_db(),
-    "last_login": user.last_login.timeinfo_to_db()
+    "creation_date": user.creation_date.datetime_to_db(),
+    "last_login": user.last_login.datetime_to_db()
   }
   # upsert
   let reply = self.user_collection.update(%*{"name": user.username}, i, false, true)
@@ -148,8 +148,8 @@ method list_users*(self: MongoDbBackend): seq[User] =
         description:u["description"],
         email_addr:u["email_addr"],
         hash:u["hash"],
-        creation_date:u["creation_date"].db_to_timeinfo(),
-        last_login:u["last_login"].db_to_timeinfo(),
+        creation_date:u["creation_date"].db_to_datetime(),
+        last_login:u["last_login"].db_to_datetime(),
       )
   except Exception:
     raise getCurrentException()
@@ -223,7 +223,7 @@ method get_pending_registration*(self: MongoDbBackend, reg_code: string): Pendin
     raise newException(PendingRegistrationNotFoundError, "Pending registration with code '$#' not found" % reg_code)
 
   return PendingRegistration(
-    creation_date: r["creation_date"].db_to_timeinfo(),
+    creation_date: r["creation_date"].db_to_datetime(),
     description: r["description"],
     email_addr: r["email_addr"],
     hash: r["hash"],
@@ -235,7 +235,7 @@ method set_pending_registration*(self: MongoDbBackend, reg_code: string, pending
   ## Insert PendingRegistration
   let r = %* {
     "code": reg_code,
-    "creation_date": pending_registration.creation_date.timeinfo_to_db(),
+    "creation_date": pending_registration.creation_date.datetime_to_db(),
     "description": pending_registration.description,
     "email_addr": pending_registration.email_addr,
     "hash": pending_registration.hash,
@@ -258,7 +258,7 @@ method list_pending_registrations*(self: MongoDbBackend): seq[PendingRegistratio
   try:
     for r in self.pending_reg_collection.find(%*{}):
       result.add PendingRegistration(
-        creation_date: r["creation_date"].db_to_timeinfo(),
+        creation_date: r["creation_date"].db_to_datetime(),
         description: r["description"],
         email_addr: r["email_addr"],
         hash: r["hash"],

@@ -22,13 +22,10 @@ jobs:
     steps:
       - run: echo 'export PATH=~/.nimble/bin:$PATH' >> $BASH_ENV
       - checkout
-      # Reuse cached Nim compiler
-      - restore_cache:
-          key: cache-0002
       - run:
           command: |
             apt-get update
-            apt-get install -y --no-install-recommends make libmysqlclient-dev libmysqlclient20 libpq5 libsodium23
+            apt-get install -y --no-install-recommends make libmysqlclient-dev libmysqlclient21 mysql-client libpq5 libsodium23
             nimble install libsodium -y
             nimble install etcd_client -y
             # MongoDB deps
@@ -38,12 +35,7 @@ jobs:
             nimble install -y hmac@#head
             nimble install -y nimongo@#head
             # Redis
-            nimble install redis@#head
-      - save_cache:
-          key: cache-0002
-          paths:
-            - ~/.nimble
-            - ~/.choosenim
+            nimble install -y redis@#head
       - run:
           command: make circleci
       - store_artifacts:

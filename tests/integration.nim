@@ -31,8 +31,8 @@ suite "integration JSON":
 
   test "get /":
     var r = c.get("/")
-    check r.OK
-    check r.body.contains("username")
+    check r.status == "200 OK"
+    check r.body().contains("username")
 
   test "fail login":
     var r = c.post("/login", {"username": "foo", "password": "bar"})

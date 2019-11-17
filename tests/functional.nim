@@ -37,7 +37,8 @@ proc pick_builtin_backend(db_uri: string): HTTPAuthBackend =
   of "postgres":
     result = newSQLBackend(db_uri=db_uri)
   of "etcd":
-    result = newEtcdBackend(db_uri=db_uri)
+    when defined(etcd):
+      result = newEtcdBackend(db_uri=db_uri)
   of "redis":
     when defined(redis):
       result = newRedisBackend(db_uri=db_uri)
@@ -264,19 +265,6 @@ suite "functional " & db_uri:
   backend.purge_all_tables()
   #aaa.shutdown()
 
-
-import subexes
-
-suite "subex":
-  test "subex":
-    assert subex"$1 $[files|file|files]{1} copied" % ["1"] == "1 file copied"
-
-    const a = "A"
-    const b = "B"
-    #let s = subex("a: ${a}, $a, b: ${b}, b")
-    #echo format(s, a, b)
-    let s = subex("$2 $1")
-    #echo s % [a, b]
 
 import base64
 

@@ -10,3 +10,6 @@ bin           = @["httpauth"]
 # Dependencies
 
 requires "nim >= 0.19.0", "libsodium"
+
+# Tested with dependencies:
+# redis 0.3.0

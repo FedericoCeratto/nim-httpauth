@@ -32,7 +32,7 @@ routes:
     try:
       auth.login(@"username", @"password")
       # move set-cookie to right place - FIXME
-      response.data[2]["Set-Cookie"] = request.headers["set-cookie"]
+      #response.data[2]["Set-Cookie"] = request.headers["set-cookie"]
       resp "Success"
     except LoginError:
       resp "Failed"
@@ -44,7 +44,8 @@ routes:
       auth.logout()
       # move set-cookie to right place - FIXME
       if request.headers.hasKey("set-cookie"):
-        response.data[2]["Set-Cookie"] = request.headers["set-cookie"]
+        echo repr request.headers["set-cookie"]
+      #setCookie(request.headers["set-cookie"])
       resp "Success"
     except AuthError:
       resp "Failed"

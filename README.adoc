@@ -131,9 +131,8 @@ WARNING: Scrypt and Argon2 will not be robust enough forever. You'll have to upd
 ==== Usage example:
 [source,nim]
 ----
-import asyncdispatch,
-  httpauth,
-  jester
+import asyncdispatch, strutils, json
+import httpauth, jester
 
 # Create a backend as needed and an HTTPAuth instance
 let backend = newSQLBackend("mysql://root@localhost/httpauth_test")

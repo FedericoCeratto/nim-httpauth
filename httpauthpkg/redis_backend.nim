@@ -86,10 +86,10 @@ proc newRedisBackend*(db_uri="httpauth.sqlite3"): RedisBackend =
 
 const timestamp_format = "yyyy-MM-dd HH:mm:ss"
 
-proc db_to_timeinfo(d: string): TimeInfo =
+proc db_to_datetime(d: string): DateTime =
   d.parseInt.fromSeconds.getGMTime()
 
-proc timeinfo_to_db(t: TimeInfo): string =
+proc datetime_to_db(t: DateTime): string =
   $t.toTime.toSeconds().int
 
 
@@ -106,9 +106,9 @@ proc toTable(li: RedisList): Table[string, string] =
 
 method get_user*(self: RedisBackend, username: string): User =
   ## Get User
-  assert username != "" and username != nil
+  assert username != ""
   let item = self.client.hGetAll(self.userpath / username)
-  if item == nil or item.len == 0:
+  if item.len == 0:
     raise newException(UserNotFoundError, "User '$#' not found" % username)
 
   let u = item.toTable()
@@ -118,8 +118,8 @@ method get_user*(self: RedisBackend, username: string): User =
     description:u["description"],
     email_addr:u["email_addr"],
     hash:u["hash"],
-    creation_date:u["creation_date"].db_to_timeinfo(),
-    last_login:u["last_login"].db_to_timeinfo(),
+    creation_date:u["creation_date"].db_to_datetime(),
+    last_login:u["last_login"].db_to_datetime(),
   )
 
 method get_user_by_email*(self: RedisBackend, email_addr: string): User =
@@ -128,7 +128,7 @@ method get_user_by_email*(self: RedisBackend, email_addr: string): User =
   assert email_addr != ""
   for key in self.client.keys(self.userpath / "*"):
     let item = self.client.hGetAll(key)
-    if item == nil or item.len == 0:
+    if item.len == 0:
       continue  # The item has been deleted during before fetching it
     let u = item.toTable()
     if u["email_addr"] == email_addr:
@@ -139,23 +139,22 @@ method get_user_by_email*(self: RedisBackend, email_addr: string): User =
         description:u["description"],
         email_addr:u["email_addr"],
         hash:u["hash"],
-        creation_date:u["creation_date"].db_to_timeinfo(),
-        last_login:u["last_login"].db_to_timeinfo(),
+        creation_date:u["creation_date"].db_to_datetime(),
+        last_login:u["last_login"].db_to_datetime(),
       )
   raise newException(UserNotFoundError, "User with email address '$#' not found" % email_addr)
 
 method set_user*(self: RedisBackend, user: User) =
   ## Set User
   assert user.username != ""
-  assert user.username != nil
   self.client.hMSet(self.userpath / user.username,
     @[
       ("role", user.role),
       ("description", user.description),
       ("email_addr", user.email_addr),
       ("hash", user.hash),
-      ("creation_date", user.creation_date.timeinfo_to_db()),
-      ("last_login", user.last_login.timeinfo_to_db())
+      ("creation_date", user.creation_date.datetime_to_db()),
+      ("last_login", user.last_login.datetime_to_db())
     ]
   )
 
@@ -173,7 +172,7 @@ method list_users*(self: RedisBackend): seq[User] =
   for key in self.client.keys(self.userpath / "*"):
     let username = key[(self.userpath.len + 1)..^0]
     let item = self.client.hGetAll(key)
-    if item == nil or item.len == 0:
+    if item.len == 0:
       raise newException(UserNotFoundError, "User '$#' not found" % username)
     let u = item.toTable()
     result.add User(
@@ -182,8 +181,8 @@ method list_users*(self: RedisBackend): seq[User] =
       description:u["description"],
       email_addr:u["email_addr"],
       hash:u["hash"],
-      creation_date:u["creation_date"].db_to_timeinfo(),
-      last_login:u["last_login"].db_to_timeinfo(),
+      creation_date:u["creation_date"].db_to_datetime(),
+      last_login:u["last_login"].db_to_datetime(),
     )
 
 
@@ -191,7 +190,7 @@ method list_users*(self: RedisBackend): seq[User] =
 
 method get_role*(self: RedisBackend, role: string): Role =
   ## Get Role
-  assert role != "" and role != nil
+  assert role != ""
   let r = self.client.get(self.rolepath / role)
   return Role(name: role, level: r.parseInt)
 
@@ -220,7 +219,7 @@ method list_roles*(self: RedisBackend): seq[Role] =
   result = @[]
   for key in self.client.keys(self.rolepath / "*"):
     let item = self.client.get(key)
-    if item == nil or item.len == 0:
+    if item == "" or item.len == 0:
       continue
     let rolename = key[(self.rolepath.len + 1)..^0]
     result.add Role(
@@ -232,14 +231,14 @@ method list_roles*(self: RedisBackend): seq[Role] =
 
 method get_pending_registration*(self: RedisBackend, reg_code: string): PendingRegistration =
   ## Get PendingRegistration
-  assert reg_code != "" and reg_code != nil
+  assert reg_code != ""
   let item = self.client.hGetAll(self.pending_reg_path / reg_code)
-  if item == nil or item.len == 0:
+  if item.len == 0:
     raise newException(PendingRegistrationNotFoundError, "Pending registration with code '$#' not found" % reg_code)
 
   let r = item.toTable()
   return PendingRegistration(
-    creation_date: r["creation_date"].db_to_timeinfo(),
+    creation_date: r["creation_date"].db_to_datetime(),
     description: r["description"],
     email_addr: r["email_addr"],
     hash: r["hash"],
@@ -251,7 +250,7 @@ method set_pending_registration*(self: RedisBackend, reg_code: string, pending_r
   ## Set PendingRegistration
   self.client.hMSet(self.pending_reg_path / reg_code,
     @[
-      ("creation_date", pending_registration.creation_date.timeinfo_to_db()),
+      ("creation_date", pending_registration.creation_date.datetime_to_db()),
       ("description", pending_registration.description),
       ("email_addr", pending_registration.email_addr),
       ("hash", pending_registration.hash),
@@ -278,7 +277,7 @@ method list_pending_registrations*(self: RedisBackend): seq[PendingRegistration]
     #FIXME no reg_code in PendingRegistration
     let r = item.toTable()
     result.add PendingRegistration(
-      creation_date: r["creation_date"].db_to_timeinfo(),
+      creation_date: r["creation_date"].db_to_datetime(),
       description: r["description"],
       email_addr: r["email_addr"],
       hash: r["hash"],

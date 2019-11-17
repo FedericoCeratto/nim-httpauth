@@ -29,6 +29,8 @@ proc newHttpTestClient*(proto, domain: string, timeout=500): HttpTestClient =
   result.domain = domain
   result.cookiejar = newCookieJar()
 
+export body
+
 proc get*(self: var HttpTestClient, relurl:string): Response =
   ## GET
   assert relurl.startswith("/")
@@ -38,17 +40,14 @@ proc get*(self: var HttpTestClient, relurl:string): Response =
   self.client.headers = newHttpHeaders({
     "Cookie": ch
   })
-  let resp = self.client.get(self.baseurl & relurl)
+  result = self.client.get(self.baseurl & relurl)
   # reset headers after every call
   self.client.headers.clear()
 
-  if resp.headers.hasKey("set-cookie"):
+  if result.headers.hasKey("set-cookie"):
     # https://github.com/nim-lang/Nim/issues/5611
-    let cookies: seq[string] = resp.headers.table["set-cookie"]
+    let cookies: seq[string] = result.headers.table["set-cookie"]
     self.cookiejar.add_cookies(cookies, self.domain, relurl)
-
-  return resp
-
 
 proc postmp*(self: var HttpTestClient, relurl:string, a: openArray[(string, string)]): Response =
   ## POST
