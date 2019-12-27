@@ -55,7 +55,6 @@ type
     Argon2, Scrypt
 
   HTTPAuth* = object of RootObj
-    preferred_hashing_algorithm*: HashingAlgorithm
     password_reset_timeout*: int
     domain*: string
     cookie_name*: string
@@ -101,37 +100,15 @@ proc safe_decode(i: string): string =
 
 # Crypto
 
-const scrypt_salt_size = 32
+proc password_pwhash_str*(password: string): string =
+  ## Hash password using libsodium `crypto_pwhash_str`
+  ## using the recommended algorithm. The output is ASCII-only
+  ## and database-safe.
+  crypto_pwhash_str(password)
 
-proc hash_scrypt(username, password: string, salt=""): string =
-  ## Scrypt hashing. Return b64 encoded('s' + salt + hash)
-  let salt =
-    if salt == "":
-      randombytes(scrypt_salt_size)
-    else:
-      salt
-  assert salt.len == scrypt_salt_size
+proc password_needs_rehashing*(password: string): bool =
+  crypto_pwhash_str_needs_rehash(password) != 0
 
-  let cleartext = "$#\0$#" % [username, password]
-  # FIXME let h = scrypt.hash(cleartext, salt)
-  let h = cleartext
-  let hashed = "s" & salt & h  # 's' for scrypt
-  return safe_encode(hashed)  # FIXME encoding/decoding required?
-
-proc hash_argon2(username, password: string, salt=""): string =
-  ##
-  ""
-
-proc hash(self: HTTPAuth, username, pwd: string, algo:HashingAlgorithm, salt=""): string =
-  ## Hash username and password, generating salt value if required
-  assert algo == Scrypt
-
-  case algo
-  of HashingAlgorithm.Scrypt:
-    return hash_scrypt(username, pwd, salt=salt)
-
-  of HashingAlgorithm.Argon2:
-    return hash_argon2(username, pwd, salt=salt)
 
 # # Cookies and session
 
@@ -211,22 +188,9 @@ proc is_user_anonymous*(self: HTTPAuth): bool =
 
 # # Procs that can be run by unauthenticated users
 
-proc verify_password(username, password, hash: string): bool =
-  ## Verify username/password pair against a salted hash
-  assert hash != ""
-  let decoded = safe_decode(hash)
-  case decoded[0]
-  of 's':
-    let salt = decoded[1..(scrypt_salt_size)]
-    assert salt.len == scrypt_salt_size, $salt.len
-    let newhash = hash_scrypt(username, password, salt=salt)
-    let newhash2 = hash_scrypt(username, password, salt=salt)
-    assert newhash == newhash2
-    #FIXME time independent comparison?
-    return newhash == hash
-
-  else:
-    raise newException(AuthError, "Unknown hashing algorithm")
+proc verify_password(password, pwhash: string): bool =
+  ## Verify password hashed by libsodium
+  return crypto_pwhash_str_verify(pwhash, password)
 
 proc login*(self: HTTPAuth, username, password: string) =
   ## Check login credentials and set a cookie on success
@@ -240,13 +204,14 @@ proc login*(self: HTTPAuth, username, password: string) =
   # FIXME prevent timing attacks
 
   assert user.hash != ""
-  let authenticated = verify_password(
-    username,
-    password,
-    user.hash,
-  )
+  let authenticated = verify_password(password, user.hash)
   if not authenticated:
     raise newException(LoginError, "Failed login")
+
+  if password_needs_rehashing(user.hash):
+    user.hash = password_pwhash_str(password)
+    self.backend.set_user(user)
+
   self.store_session(username)
 
   # if login_time
@@ -310,12 +275,12 @@ proc register*(self: HTTPAuth, username, password, email_addr: string, role="use
   asyncCheck self.mailer.send_email(email_addr, subject, email_text)
 
   # store pending registration
-  let user_pwd_hash = self.hash(username, password, self.preferred_hashing_algorithm)
+  let pwhash = password_pwhash_str(password)
 
   self.backend.set_pending_registration(registration_code, PendingRegistration(
     username: username,
     role: role,
-    hash: user_pwd_hash,
+    hash: pwhash,
     email_addr: email_addr,
     description: description,
     creation_date: creation_date,
@@ -426,7 +391,7 @@ proc reset_password*(self: HTTPAuth, reset_code, password: string) =
   var user = self.backend.get_user(username)
   if user.email_addr != email_addr:
     raise newException(AuthError, "Incorrect email address in reset code")
-  user.hash = self.hash(username, password, self.preferred_hashing_algorithm)
+  user.hash = password_pwhash_str(password)
   self.backend.set_user(user)
   self.backend.save_users()
 
@@ -469,12 +434,12 @@ proc create_user*(self: HTTPAuth, username, password: string, role = "user",
   except:
     raise newException(AuthError, "Nonexistent user role.")
 
-  let h = self.hash(username, password, self.preferred_hashing_algorithm)
+  let pwhash = password_pwhash_str(password)
   let tstamp = getTime().getGMTime
   self.backend.set_user(User(
     username: username,
     role: role,
-    hash: h,
+    hash: pwhash,
     email_addr: email_addr,
     description: description,
     creation_date: tstamp,
@@ -539,13 +504,11 @@ proc delete_role*(self: HTTPAuth, role: string) =
 const one_day = 24 * 3600
 
 proc newHTTPAuth*(domain: string, backend: HTTPAuthBackend, cookie_name="", cookie_domain="",
-    preferred_hashing_algorithm = HashingAlgorithm.Scrypt,
     password_reset_timeout=one_day, session_key="", https_only_cookies=true): HTTPAuth =
   ## Initialize HTTPAuth
   result = HTTPAuth(domain: domain, backend: backend,
     password_reset_timeout: password_reset_timeout,
     https_only_cookies: https_only_cookies,
-    preferred_hashing_algorithm: preferred_hashing_algorithm,
   )
   result.mailer = newMailer() #FIXME: pass arguments
   assert result.backend != nil
@@ -590,13 +553,12 @@ proc initialize_admin_user*(self: HTTPAuth, username="admin", password="", role=
     level: admin_level
   ))
   self.backend.save_roles()
-  let h = self.hash(username, password, self.preferred_hashing_algorithm)
-  # FIXME assert h.len == 52, $h.len
+  let pwhash = password_pwhash_str(password)
   let tstamp = getTime().getGMTime
   self.backend.set_user(User(
     username: username,
     role: role,
-    hash: h,
+    hash: pwhash,
     email_addr: email_addr,
     description: description,
     creation_date: tstamp,
@@ -641,7 +603,7 @@ proc require*(self: HTTPAuth, username="", role="", fixed_role=false) =
 proc update_user_password*(self: HTTPAuth, username, password: string) =
   ## Update user password
   var user = self.backend.get_user(username)
-  user.hash = self.hash(username, password, self.preferred_hashing_algorithm)
+  user.hash = password_pwhash_str(password)
   self.backend.set_user(user)
   self.backend.save_users()
 

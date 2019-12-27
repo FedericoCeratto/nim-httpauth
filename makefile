@@ -67,11 +67,14 @@ functional_mongodb:
 	mongo httpauth_test --eval 'db.users.drop()'
 	./tests/functional mongodb://127.0.0.1/httpauth_test
 
-functional: build_functional_tests functional_sqlite functional_mysql functional_etcd build_functional_tests_mongodb functional_mongodb
+unit:
+	nim c -p=. -r tests/unit.nim
+
+functional: unit build_functional_tests functional_sqlite functional_mysql functional_etcd build_functional_tests_mongodb functional_mongodb
 
 # CircleCI
 # FIXME MySQL Etcd Redis
-circleci: build_functional_tests functional_sqlite build_functional_tests_mongodb functional_mongodb
+circleci: unit build_functional_tests functional_sqlite build_functional_tests_mongodb functional_mongodb
 
 start_databases:
 	sudo systemctl start etcd.service

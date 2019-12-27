@@ -6,6 +6,8 @@ image:https://img.shields.io/badge/status-stable-green.svg[badge]
 image:https://img.shields.io/github/tag/FedericoCeratto/nim-httpauth.svg[tags]
 image:https://img.shields.io/badge/License-LGPL%20v3-blue.svg[License]
 
+WARNING: Version 0.2.0 is not backward compatible due previously weak password hashing
+
 .Features:
 [none]
 - [x] Encrypted+signed session cookies
@@ -20,10 +22,6 @@ image:https://img.shields.io/badge/License-LGPL%20v3-blue.svg[License]
 - [ ] FIDO U2F 2nd factor authentication
 - [ ] Async JSON backend
 - [ ] Async backends (when async libraries will be available)
-
-.Not planned:
-- bcrypt (obsolete)
-- pbkdf2 (obsolete)
 
 Install the dependencies:
 [source,bash]
@@ -122,11 +120,10 @@ var auth = newHTTPAuth("localhost", backend)
 
 Cookie-based sessions are encrypted and signed to protect from cookie exfiltration from the browser.
 Registration and password reset tokens are signed and have a timeout.
-Passwords are stored using Scrypt or Argon2.
+Passwords are hashed using libsodium default algorithm.
+The hash is regenerated automatically on login if needed.
 
 WARNING: Remember to filter user input to prevent XSS, SQL injections and similar attacks.
-
-WARNING: Scrypt and Argon2 will not be robust enough forever. You'll have to update the library and rehash passwords.
 
 ==== Usage example:
 [source,nim]
