@@ -87,10 +87,10 @@ proc newRedisBackend*(db_uri="httpauth.sqlite3"): RedisBackend =
 const timestamp_format = "yyyy-MM-dd HH:mm:ss"
 
 proc db_to_datetime(d: string): DateTime =
-  d.parseInt.fromSeconds.getGMTime()
+  d.parseInt.fromUnix.utc()
 
 proc datetime_to_db(t: DateTime): string =
-  $t.toTime.toSeconds().int
+  $t.toTime.toUnixFloat().int
 
 
 # User

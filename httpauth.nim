@@ -16,7 +16,7 @@ import asyncdispatch,
 import tables, json, os
 
 from strtabs import `[]`, hasKey
-from times import getGMTime, fromSeconds
+from times import utc, fromUnix
 
 import libsodium/sodium
 import libsodium/sodium_sizes
@@ -255,7 +255,7 @@ proc register*(self: HTTPAuth, username, password, email_addr: string, role="use
 
   let
     registration_code = generate_registration_code()
-    creation_date = getTime().getGMTime()
+    creation_date = getTime().utc()
 
     registration_email_fn = "registration_email.tpl"
     registration_email_tpl = registration_email_fn.readFile
@@ -311,7 +311,7 @@ proc validate_registration*(self: HTTPAuth, registration_code: string) =
     raise newException(AuthError, "Nonexistent user role.")
 
   # the user data is moved from pending_registrations to _users
-  let tstamp = getTime().getGMTime
+  let tstamp = getTime().utc
   self.backend.set_user(User(
       username: r.username,
       role: r.role,
@@ -365,7 +365,7 @@ proc send_password_reset_email*(self: HTTPAuth, username="", email_addr="",
     username,
     email_addr,
     reset_code,
-    getTime().getGMTime()
+    getTime().utc()
   )
   assert self.mailer.sender_email_addr != ""
   asyncCheck self.mailer.send_email(email_addr, subject, email_text)
@@ -435,7 +435,7 @@ proc create_user*(self: HTTPAuth, username, password: string, role = "user",
     raise newException(AuthError, "Nonexistent user role.")
 
   let pwhash = password_pwhash_str(password)
-  let tstamp = getTime().getGMTime
+  let tstamp = getTime().utc
   self.backend.set_user(User(
     username: username,
     role: role,
@@ -554,7 +554,7 @@ proc initialize_admin_user*(self: HTTPAuth, username="admin", password="", role=
   ))
   self.backend.save_roles()
   let pwhash = password_pwhash_str(password)
-  let tstamp = getTime().getGMTime
+  let tstamp = getTime().utc
   self.backend.set_user(User(
     username: username,
     role: role,
