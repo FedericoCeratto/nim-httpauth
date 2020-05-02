@@ -56,8 +56,8 @@ proc load_users_file(self: JsonBackend) =
   var users = initTable[string, User]()
   try:
     for node in items(parseFile(fn)):
-      let cdate = node["cdate"].getNum().fromSeconds().getGMTime()
-      let ldate = node["ldate"].getNum().fromSeconds().getGMTime()
+      let cdate = node["cdate"].getInt().fromUnix().utc()
+      let ldate = node["ldate"].getInt().fromUnix().utc()
       let u = User(
         username: node["name"].str,
         role: node["role"].str,
@@ -84,7 +84,7 @@ proc load_roles_file(self: JsonBackend) =
   try:
     for node in items(parseFile(fn)):
       roles.add(node["name"].str, Role(
-        level: node["l"].getNum().int,
+        level: node["l"].getInt().int,
       ))
   except Exception:
     raise newException(Exception,
@@ -96,7 +96,7 @@ proc load_pending_registrations_file(self: JsonBackend) =
   var pending_registrations = initTable[string, PendingRegistration]()
   try:
     for node in items(parseFile(fn)):
-      let cdate = node["cdate"].getNum().fromSeconds().getGMTime()
+      let cdate = node["cdate"].getInt().fromUnix().utc()
       pending_registrations.add(node["name"].str, PendingRegistration(
         username: node["name"].str,
         role: node["role"].str,
