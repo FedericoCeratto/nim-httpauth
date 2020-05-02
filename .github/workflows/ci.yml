@@ -22,7 +22,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
       mysql:
         image: mysql:5.7
-        environment:
+        env:
           MYSQL_ALLOW_EMPTY_PASSWORD: true
           MYSQL_DATABASE: "httpauth_test"
           MYSQL_ROOT_PASSWORD: ''
