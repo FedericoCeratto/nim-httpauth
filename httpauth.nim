@@ -78,9 +78,7 @@ import base64
 
 proc safe_encode(i: string): string =
   ## URL-safe and Cookie-safe encoding
-  encode(i, newLine="")
-    .replace('+', '-')
-    .replace('/', '_').strip(false, true, {'='})
+  base64.encode(i, safe=true).strip(false, true, {'='})
 
 proc safe_decode(i: string): string =
   ## URL-safe and Cookie-safe decoding
