@@ -6,8 +6,6 @@ image:https://img.shields.io/badge/status-stable-green.svg[badge]
 image:https://img.shields.io/github/tag/FedericoCeratto/nim-httpauth.svg[tags]
 image:https://img.shields.io/badge/License-LGPL%20v3-blue.svg[License]
 
-WARNING: Version 0.2.0 is not backward compatible due previously weak password hashing
-
 .Features:
 [none]
 - [x] Encrypted+signed session cookies
@@ -46,7 +44,7 @@ nimble install httpauth
 
 nimble install etcd_client   # etcd >= 0.2.0
 nimble install redis         # Redis
-nimble install nimongo       # MongoDB
+nimble install nimongo       # MongoDB: use #head if needed
 ----
 
 ==== Running the demo
