@@ -82,5 +82,6 @@ jobs:
         shell: bash
         run: echo "::add-path::${{ github.workspace }}/bin"
 
-      - run:
-          command: make circleci
+      - name: 'Run build and tests'
+        shell: bash
+        run: make circleci
