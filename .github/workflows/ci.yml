@@ -1,3 +1,4 @@
+---
 name: CI
 on: [push, pull_request]
 jobs:
@@ -19,26 +20,21 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      - image: mysql:5.7
+      mysql:
+        image: mysql:5.7
         environment:
           MYSQL_ALLOW_EMPTY_PASSWORD: true
           MYSQL_DATABASE: "httpauth_test"
           MYSQL_ROOT_PASSWORD: ''
-      - image: circleci/postgres:9.6.2-alpine
-        environment:
-          POSTGRES_USER: root
-          POSTGRES_DB: circle-test_test
-      - image: circleci/mongo:latest
-      - image: bitnami/etcd:latest
-        environment:
+      mongodb:
+        image: mongo
+      etcd:
+        image: bitnami/etcd:latest
+        env:
           ALLOW_NONE_AUTHENTICATION=yes
-      - image: bitnami/redis:latest
-        environment:
+      redis:
+        image: bitnami/redis:latest
+        env:
           - ALLOW_EMPTY_PASSWORD=yes
 
     steps:
