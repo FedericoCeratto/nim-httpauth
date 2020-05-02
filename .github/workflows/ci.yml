@@ -26,16 +26,21 @@ jobs:
           MYSQL_ALLOW_EMPTY_PASSWORD: true
           MYSQL_DATABASE: "httpauth_test"
           MYSQL_ROOT_PASSWORD: ''
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
       mongodb:
         image: mongo
       etcd:
         image: bitnami/etcd:latest
+        ports:
+          - 2379:2379
         env:
-          ALLOW_NONE_AUTHENTICATION=yes
+          ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+          ETCD_ADVERTISE_CLIENT_URLS: http://etcd:2379
+          ALLOW_NONE_AUTHENTICATION: yes
       redis:
         image: bitnami/redis:latest
         env:
-          - ALLOW_EMPTY_PASSWORD=yes
+          ALLOW_EMPTY_PASSWORD: yes
 
     steps:
       - name: 'Checkout'
