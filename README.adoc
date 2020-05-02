@@ -44,7 +44,7 @@ nimble install httpauth
 
 # Install extra dependencies as needed:
 
-nimble install etcd_client   # etcd
+nimble install etcd_client   # etcd >= 0.2.0
 nimble install redis         # Redis
 nimble install nimongo       # MongoDB
 ----

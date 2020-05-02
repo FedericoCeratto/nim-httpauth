@@ -271,7 +271,7 @@ method get_pending_registration*(self: EtcdBackend, reg_code: string): PendingRe
       raise newException(PendingRegistrationNotFoundError, "Pending registration with code '$#' not found" % reg_code)
     raise getCurrentException()
 
-  let cdate = r["creation_date"].getNum().fromUnix().utc()
+  let cdate = r["creation_date"].getInt().fromUnix().utc()
   return PendingRegistration(
     creation_date: cdate,
     description: r["description"].str,
