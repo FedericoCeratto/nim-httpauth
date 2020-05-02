@@ -47,7 +47,8 @@ jobs:
           sudo apt-fast update -qq
           DEBIAN_FRONTEND='noninteractive' \
             sudo apt-fast install --no-install-recommends -y \
-            make libmysqlclient-dev libmysqlclient21 mysql-client libpq5 libsodium23
+            make libmysqlclient-dev libmysqlclient21 mysql-client \
+            libpq5 libsodium23 mongodb-clients
           nimble install libsodium -y
           nimble install etcd_client -y
 
@@ -62,8 +63,9 @@ jobs:
           true
 
       - name: 'Install dependencies (Nim)'
+        shell: bash
+        run: |
           # MongoDB deps
-          apt-get install -y mongodb-clients
           nimble install -y scram@#head
           nimble install -y sha1@#head
           nimble install -y hmac@#head
