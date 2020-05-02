@@ -86,7 +86,7 @@ suite "integration JSON":
       "level": "10",
     })
     let j = r.body.parseJson()
-    check j["ok"].getBVal == true
+    check j["ok"].getBool == true
 
   test "list roles":
     let roles = c.get("/list_roles").body
@@ -101,7 +101,7 @@ suite "integration JSON":
     let j = r.body.parseJson()
     # FIXME
     echo j
-    check j["ok"].getBVal == true
+    check j["ok"].getBool == true
 
   test "create user with inexistent role":
     var r = c.post("/create_user", {
@@ -110,7 +110,7 @@ suite "integration JSON":
       "password": "testuser_pass"
     })
     let j = r.body.parseJson()
-    check j["ok"].getBVal == false
+    check j["ok"].getBool == false
 
 
   test "logout":
@@ -131,7 +131,7 @@ suite "integration JSON":
     let j = r.body.parseJson()
     #FIXME
     echo j
-    check j["ok"].getBVal == false
+    check j["ok"].getBool == false
 
   test "create user from normal user":
     var r = c.post("/create_user", {
@@ -140,7 +140,7 @@ suite "integration JSON":
       "password": "testuser_pass"
     })
     let j = r.body.parseJson()
-    check j["ok"].getBVal == false
+    check j["ok"].getBool == false
 
 
 

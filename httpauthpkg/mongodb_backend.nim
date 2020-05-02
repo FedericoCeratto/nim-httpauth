@@ -68,6 +68,9 @@ const timestamp_format = "yyyy-MM-dd HH:mm:ss"
 proc db_to_datetime(d: string): DateTime =
   d.parseInt.fromUnix.utc()
 
+proc db_to_datetime(d: Bson): DateTime =
+  d.toString.parseInt.fromUnix.utc()
+
 proc datetime_to_db(t: DateTime): string =
   $t.toTime.toUnixFloat().int
 
@@ -84,11 +87,11 @@ method get_user*(self: MongoDbBackend, username: string): User =
     raise newException(UserNotFoundError, "User '$#' not found" % username)
 
   return User(
-    username:u["name"],
-    role:u["role"],
-    description:u["description"],
-    email_addr:u["email_addr"],
-    hash:u["hash"],
+    username:u["name"].toString,
+    role:u["role"].toString,
+    description:u["description"].toString,
+    email_addr:u["email_addr"].toString,
+    hash:u["hash"].toString,
     creation_date:u["creation_date"].db_to_datetime(),
     last_login:u["last_login"].db_to_datetime(),
   )
@@ -103,11 +106,11 @@ method get_user_by_email*(self: MongoDbBackend, email_addr: string): User =
     raise newException(UserNotFoundError, "User with email address '$#' not found" % email_addr)
 
   return User(
-    username:u["name"],
-    role:u["role"],
-    description:u["description"],
-    email_addr:u["email_addr"],
-    hash:u["hash"],
+    username:u["name"].toString,
+    role:u["role"].toString,
+    description:u["description"].toString,
+    email_addr:u["email_addr"].toString,
+    hash:u["hash"].toString,
     creation_date:u["creation_date"].db_to_datetime(),
     last_login:u["last_login"].db_to_datetime(),
   )
@@ -143,11 +146,11 @@ method list_users*(self: MongoDbBackend): seq[User] =
   try:
     for u in self.user_collection.find(%*{}):
       result.add User(
-        username:u["name"],
-        role:u["role"],
-        description:u["description"],
-        email_addr:u["email_addr"],
-        hash:u["hash"],
+        username:u["name"].toString,
+        role:u["role"].toString,
+        description:u["description"].toString,
+        email_addr:u["email_addr"].toString,
+        hash:u["hash"].toString,
         creation_date:u["creation_date"].db_to_datetime(),
         last_login:u["last_login"].db_to_datetime(),
       )
@@ -160,7 +163,7 @@ method get_role*(self: MongoDbBackend, role: string): Role =
   ## Get Role
   assert role != ""
   let r = self.role_collection.find(%*{"name": role}).one()
-  return Role(name: role, level: r["level"])
+  return Role(name: role, level: r["level"].toInt)
 
 method set_role*(self: MongoDbBackend, role: Role) =
   ## Set Role
@@ -204,7 +207,7 @@ method list_roles*(self: MongoDbBackend): seq[Role] =
   result = @[]
   try:
     for r in self.role_collection.find(%*{}):
-      result.add Role(name: r["name"], level: r["level"])
+      result.add Role(name: r["name"].toString, level: r["level"].toInt)
   except Exception:
     if getCurrentExceptionMsg() == "404 Not Found - Key not found":
       return
@@ -224,11 +227,11 @@ method get_pending_registration*(self: MongoDbBackend, reg_code: string): Pendin
 
   return PendingRegistration(
     creation_date: r["creation_date"].db_to_datetime(),
-    description: r["description"],
-    email_addr: r["email_addr"],
-    hash: r["hash"],
-    role: r["role"],
-    username: r["name"],
+    description: r["description"].toString,
+    email_addr: r["email_addr"].toString,
+    hash: r["hash"].toString,
+    role: r["role"].toString,
+    username: r["name"].toString,
   )
 
 method set_pending_registration*(self: MongoDbBackend, reg_code: string, pending_registration: PendingRegistration) =
@@ -259,11 +262,11 @@ method list_pending_registrations*(self: MongoDbBackend): seq[PendingRegistratio
     for r in self.pending_reg_collection.find(%*{}):
       result.add PendingRegistration(
         creation_date: r["creation_date"].db_to_datetime(),
-        description: r["description"],
-        email_addr: r["email_addr"],
-        hash: r["hash"],
-        role: r["role"],
-        username: r["name"],
+        description: r["description"].toString,
+        email_addr: r["email_addr"].toString,
+        hash: r["hash"].toString,
+        role: r["role"].toString,
+        username: r["name"].toString,
       )
   except Exception:
     if getCurrentExceptionMsg() == "404 Not Found - Key not found":

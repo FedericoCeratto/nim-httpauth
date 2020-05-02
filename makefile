@@ -47,7 +47,8 @@ build_functional_tests:
 	nim c -p=. -d:mock_send_email -d:ssl -d:etcd -d:redis tests/functional.nim
 
 build_functional_tests_mongodb:
-	nim c -p=. -d:mock_send_email -d:ssl -d:mongodb -d:nimOldCaseObjects tests/functional.nim
+	# needs nimongo@#head as 20200502
+	nim c -p=. -d:mock_send_email -d:ssl -d:mongodb tests/functional.nim
 
 functional_sqlite:
 	./tests/functional sqlite:///tmp/httpauth_test.sqlite3
