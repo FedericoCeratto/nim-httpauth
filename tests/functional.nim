@@ -6,7 +6,6 @@
 import unittest,
   httpcore,
   strutils,
-  tables,
   os
 
 import httpauthpkg/base

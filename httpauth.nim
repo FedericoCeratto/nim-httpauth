@@ -13,8 +13,6 @@ import asyncdispatch,
   times,
   strutils
 
-import tables, json, os
-
 from strtabs import `[]`, hasKey
 from times import utc, fromUnix
 
