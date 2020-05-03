@@ -1,0 +1,87 @@
+---
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-18.04, macos-10.15, windows-2019]
+        cpu: [amd64]
+    name: '${{ matrix.os }} (${{ matrix.cpu }})'
+    runs-on: ${{ matrix.os }}
+
+    # Implemented based on:
+    # https://help.github.com/en/actions/configuring-and-managing-workflows/creating-postgresql-service-containers
+    services:
+      postgres:
+        image: postgres
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: postgres
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_DATABASE: "httpauth_test"
+          MYSQL_ROOT_PASSWORD: ''
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      mongodb:
+        image: mongo
+      etcd:
+        image: bitnami/etcd:latest
+        ports:
+          - 2379:2379
+        env:
+          ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+          ETCD_ADVERTISE_CLIENT_URLS: http://etcd:2379
+          ALLOW_NONE_AUTHENTICATION: yes
+      redis:
+        image: bitnami/redis:latest
+        env:
+          ALLOW_EMPTY_PASSWORD: yes
+
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+
+      - name: 'Install dependencies (Linux amd64)'
+        if: runner.os == 'Linux' && matrix.cpu == 'amd64'
+        run: |
+          sudo apt-fast update -qq
+          DEBIAN_FRONTEND='noninteractive' \
+            sudo apt-fast install --no-install-recommends -y \
+            make libmysqlclient-dev libmysqlclient21 mysql-client \
+            libpq5 libsodium23 mongodb-clients
+          nimble install libsodium -y
+          nimble install etcd_client -y
+
+      - name: 'Install dependencies (macOS)'
+        if: runner.os == 'macOS'
+        run: brew install make
+
+      - name: 'Install dependencies (Windows)'
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          true
+
+      - name: 'Install dependencies (Nim)'
+        shell: bash
+        run: |
+          # MongoDB deps
+          nimble install -y scram@#head
+          nimble install -y sha1@#head
+          nimble install -y hmac@#head
+          nimble install -y nimongo@#head
+          # Redis
+          nimble install -y redis@#head
+
+      - name: 'Add build binaries to PATH'
+        shell: bash
+        run: echo "::add-path::${{ github.workspace }}/bin"
+
+      - name: 'Run build and tests'
+        shell: bash
+        run: make circleci
