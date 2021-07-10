@@ -25,7 +25,8 @@ jobs:
       - run:
           command: |
             apt-get update
-            apt-get install -y --no-install-recommends make libmysqlclient-dev libmysqlclient21 mysql-client libpq5 libsodium23
+            apt-get install -y --no-install-recommends make libmysqlclient-dev \
+              libmysqlclient21 mysql-client libpq5 libsodium23
             nimble install libsodium -y
             nimble install etcd_client -y
             # MongoDB deps
