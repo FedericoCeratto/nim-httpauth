@@ -12,7 +12,7 @@ jobs:
         environment:
           POSTGRES_USER: root
           POSTGRES_DB: circle-test_test
-      - image: circleci/mongo:latest
+      #- image: circleci/mongo:latest
       - image: bitnami/etcd:latest
         environment:
           ALLOW_NONE_AUTHENTICATION=yes
@@ -30,11 +30,11 @@ jobs:
             nimble install libsodium -y
             nimble install etcd_client -y
             # MongoDB deps
-            apt-get install -y mongodb-clients
-            nimble install -y scram@#head
-            nimble install -y sha1@#head
-            nimble install -y hmac@#head
-            nimble install -y nimongo@#head
+            # apt-get install -y mongodb-clients
+            # nimble install -y scram@#head
+            # nimble install -y sha1@#head
+            # nimble install -y hmac@#head
+            # nimble install -y nimongo@#head
             # Redis
             nimble install -y redis@#head
       - run:
