@@ -10,8 +10,8 @@ jobs:
           MYSQL_ROOT_PASSWORD: ''
       - image: circleci/postgres:9.6.2-alpine
         environment:
-          POSTGRES_USER: root
-          POSTGRES_DB: circle-test_test
+          POSTGRES_USER: httpauthtest
+          POSTGRES_DB: httpauth_test
       #- image: circleci/mongo:latest
       - image: bitnami/etcd:latest
         environment:
