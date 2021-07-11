@@ -6,14 +6,14 @@ import unittest,
   times,
   strutils
 
-from os import removeFile, paramCount, paramStr
+from os import removeFile, paramCount, paramStr, getEnv
 import httpauthpkg/base
 import httpauthpkg/sql_backend
 
-if paramCount() != 1:
-  echo "URL param required"
+let db_uri = getEnv("DB_URI")
+if db_uri == "":
+  echo "The DB_URI env var is required"
   quit(1)
-let db_uri = paramStr(1)
 
 suite "SQL test $#" % db_uri:
 

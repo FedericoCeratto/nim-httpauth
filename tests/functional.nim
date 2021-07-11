@@ -17,10 +17,10 @@ when not defined(mock_send_email):
 
 from httpauthpkg/mailer import mock_email_spool
 
-if paramCount() != 1:
-  echo "URL param required"
+let db_uri = getEnv("DB_URI")
+if db_uri == "":
+  echo "The DB_URI env var is required"
   quit(1)
-let db_uri = paramStr(1)
 
 const
   test_basedir = "/tmp/test_httpauth/functional"
@@ -151,7 +151,7 @@ suite "functional " & db_uri:
   test "logout":
     aaa.logout()
     assert headers["set-cookie"] == "localhost=; Domain=localhost; " &
-      "Expires=Thu, 01-Jan-1970 00:00:01 GMT; secure; HttpOnly"
+      "Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly"
     headers.clear()
 
   test "send registration email":
