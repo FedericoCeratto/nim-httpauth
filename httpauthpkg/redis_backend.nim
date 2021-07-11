@@ -132,7 +132,7 @@ method get_user_by_email*(self: RedisBackend, email_addr: string): User =
       continue  # The item has been deleted during before fetching it
     let u = item.toTable()
     if u["email_addr"] == email_addr:
-      let username = key[(self.userpath.len + 1)..^0]
+      let username = key[(self.userpath.len + 1)..^1]
       return User(
         username:username,
         role:u["role"],
@@ -170,7 +170,7 @@ method list_users*(self: RedisBackend): seq[User] =
   ## List users
   result = @[]
   for key in self.client.keys(self.userpath / "*"):
-    let username = key[(self.userpath.len + 1)..^0]
+    let username = key[(self.userpath.len + 1)..^1]
     let item = self.client.hGetAll(key)
     if item.len == 0:
       raise newException(UserNotFoundError, "User '$#' not found" % username)
@@ -221,7 +221,7 @@ method list_roles*(self: RedisBackend): seq[Role] =
     let item = self.client.get(key)
     if item == "" or item.len == 0:
       continue
-    let rolename = key[(self.rolepath.len + 1)..^0]
+    let rolename = key[(self.rolepath.len + 1)..^1]
     result.add Role(
       name: rolename,
       level: item.parseInt
@@ -271,7 +271,7 @@ method list_pending_registrations*(self: RedisBackend): seq[PendingRegistration]
   ## List pending_registrations
   result = @[]
   for key in self.client.keys(self.pending_reg_path / "*"):
-    let username = key[(self.pending_reg_path.len + 1)..^0]
+    let username = key[(self.pending_reg_path.len + 1)..^1]
     let item = self.client.hGetAll(key)
     #if item == nil or item.len == 0:
     #FIXME no reg_code in PendingRegistration
