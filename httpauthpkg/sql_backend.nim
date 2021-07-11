@@ -101,7 +101,7 @@ method create_tables(self: SQLBackend) {.base.} =
   """))
   self.db_exec(sql("""
     CREATE TABLE IF NOT EXISTS pending_registration (
-      reg_code varchar(1024) PRIMARY KEY,
+      reg_code varchar(768) PRIMARY KEY,
       username varchar(64) not null,
       role varchar(64) not null,
       description varchar(64),
