@@ -48,6 +48,9 @@ functional_sqlite:
 functional_mysql:
 	DB_URI=mysql://httpauthtest@127.0.0.1/httpauth_test nim c -r -p=. -d:mock_send_email -d:ssl -d:mysql tests/functional.nim
 
+functional_postgresql:
+	DB_URI=postgresql://httpauthtest@127.0.0.1/httpauth_test nim c -r -p=. -d:mock_send_email -d:ssl -d:mysql tests/functional.nim
+  
 functional_etcd:
 	DB_URI=etcd://127.0.0.1:2379/httpauth_test nim c -r -p=. -d:mock_send_email -d:ssl -d:etcd tests/functional.nim
 
@@ -67,8 +70,8 @@ unit:
 functional: unit functional_sqlite functional_mysql functional_etcd functional_mongodb
 
 # CircleCI
-# FIXME MySQL Etcd Redis MongoDB
-circleci: unit functional_sqlite
+# FIXME MySQL Etcd MongoDB
+circleci: unit functional_sqlite functional_redis
 
 start_databases:
 	sudo systemctl start etcd.service
